@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.batak.turkce.model.CardDesign
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Rank
+import com.batak.turkce.model.Suit
 import com.batak.turkce.ui.theme.BatakColors
 
 @Composable
@@ -46,10 +49,12 @@ fun CardFace(
     val faceBottom = if (design == CardDesign.KLASIK) Color(0xFFEFE8D8) else Color(0xFFE6DCC4)
     val ink = if (card.suit.isRed) BatakColors.CardRed else BatakColors.CardBlack
     val shape = RoundedCornerShape(width * 0.13f)
-    val cornerRank = with(density) { (width.toPx() * 0.30f).toSp() }
-    val cornerSuit = with(density) { (width.toPx() * 0.24f).toSp() }
-    val centerGlyph = with(density) { (width.toPx() * 0.52f).toSp() }
-    val centerRank = with(density) { (width.toPx() * 0.34f).toSp() }
+    val cornerRank = with(density) { (width.toPx() * 0.22f).toSp() }
+    val cornerSuitSize = width * 0.14f
+    val aceSize = width * 0.44f
+    val pipSize = width * 0.36f
+    val courtRank = with(density) { (width.toPx() * 0.24f).toSp() }
+    val courtSuitSize = width * 0.20f
 
     Box(
         modifier
@@ -67,37 +72,34 @@ fun CardFace(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (card.rank.value in Rank.JACK.value..Rank.KING.value) {
-                Text(
-                    text = card.rank.label,
-                    color = ink,
-                    fontSize = centerRank,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Bold
-                )
-            } else if (card.rank == Rank.ACE) {
-                Text(
-                    text = "A",
-                    color = ink,
-                    fontSize = centerRank,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Bold
-                )
+            when {
+                card.rank == Rank.ACE -> {
+                    SuitSymbol(card.suit, aceSize, ink)
+                }
+                card.rank.value in Rank.JACK.value..Rank.KING.value -> {
+                    Text(
+                        text = card.rank.label,
+                        color = ink,
+                        fontSize = courtRank,
+                        lineHeight = courtRank,
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(width * 0.03f))
+                    SuitSymbol(card.suit, courtSuitSize, ink)
+                }
+                else -> {
+                    SuitSymbol(card.suit, pipSize, ink)
+                }
             }
-            Text(
-                text = card.suit.symbol,
-                color = ink,
-                fontSize = centerGlyph,
-                fontFamily = FontFamily.Serif
-            )
         }
 
         CardCorner(
             rank = card.rank.label,
-            suit = card.suit.symbol,
+            suit = card.suit,
             color = ink,
             rankSize = cornerRank,
-            suitSize = cornerSuit,
+            suitSize = cornerSuitSize,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = width * 0.06f, top = width * 0.04f)
@@ -105,10 +107,10 @@ fun CardFace(
 
         CardCorner(
             rank = card.rank.label,
-            suit = card.suit.symbol,
+            suit = card.suit,
             color = ink,
             rankSize = cornerRank,
-            suitSize = cornerSuit,
+            suitSize = cornerSuitSize,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = width * 0.06f, bottom = width * 0.04f)
@@ -120,10 +122,10 @@ fun CardFace(
 @Composable
 private fun CardCorner(
     rank: String,
-    suit: String,
+    suit: Suit,
     color: Color,
     rankSize: androidx.compose.ui.unit.TextUnit,
-    suitSize: androidx.compose.ui.unit.TextUnit,
+    suitSize: Dp,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -135,13 +137,8 @@ private fun CardCorner(
             fontWeight = FontWeight.Bold,
             lineHeight = rankSize
         )
-        Text(
-            text = suit,
-            color = color,
-            fontSize = suitSize,
-            lineHeight = suitSize,
-            fontFamily = FontFamily.Serif
-        )
+        Spacer(Modifier.height(suitSize * 0.08f))
+        SuitSymbol(suit, suitSize, color)
     }
 }
 
