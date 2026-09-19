@@ -33,6 +33,7 @@ belirler ve herkes sözünü tutmaya çalışır.
 ## Özellikler
 
 - 52 kartlık gerçek deste, doğru kart sıralaması (A > K > Q > J > 10 … > 2)
+- Eldeki kartlar renklerine göre gruplanır, her renk kendi içinde büyükten küçüğe sıralanır
 - Sıralı ihale sistemi (Eşsiz modda 5–13, Eşli modda 7–13, geçersiz teklifler engellenir)
 - Koz seçimi (♠ Maça, ♥ Kupa, ♦ Karo, ♣ Sinek)
 - Takım rengi zorunluluğu ve **kart yükseltme zorunluluğu**
@@ -75,7 +76,7 @@ Windows'ta `gradlew.bat` kullanın.
 Çıktı: `app/build/outputs/apk/release/app-release.apk`
 
 Hazır APK, depo kökündeki `apk/app-release.apk` dosyasındadır ve
-[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.0`
+[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.1`
 sürümüne eklenmiştir. APK, hata ayıklama anahtarıyla imzalanmıştır; telefona doğrudan
 kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 

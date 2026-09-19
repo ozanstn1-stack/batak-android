@@ -27,7 +27,7 @@ fun AboutScreen(vm: GameViewModel, onBack: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Sürüm 1.1.0",
+                text = "Sürüm 1.1.1",
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 fontSize = 12.sp
             )
