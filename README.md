@@ -77,7 +77,7 @@ Windows'ta `gradlew.bat` kullanın.
 Çıktı: `app/build/outputs/apk/release/app-release.apk`
 
 Hazır APK, depo kökündeki `apk/app-release.apk` dosyasındadır ve
-[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.3`
+[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.4`
 sürümüne eklenmiştir. APK, hata ayıklama anahtarıyla imzalanmıştır; telefona doğrudan
 kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 
@@ -106,8 +106,10 @@ kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 - **Ele kozla başlanamaz:** Turun ilk kartı koz olamaz. İstisna: oyuncunun elinde koz
   renginden **A, K ve Q birlikte** varsa ya da eli tamamen kozdan oluşuyorsa kozla
   başlayabilir.
-- Elinde o renk yoksa koz atabilir; ancak masadaki en yüksek kozdan daha büyük bir kozu
-  varsa **kozu büyütmek zorundadır**.
+- Elinde o renk yoksa **koz atmak zorundadır**; kozu varsa diğer kartlarını oynayamaz.
+  Masadaki en yüksek kozdan daha büyük bir kozu varsa **kozu büyütmek zorundadır**.
+  Kozu hiç yoksa istediği kartı atabilir.
+- Eşli modda eşi eli kazanıyorsa koz atma zorunluluğu yoktur.
 - Elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek kart eli kazanır.
 - Eli kazanan oyuncu sıradaki eli başlatır.
 

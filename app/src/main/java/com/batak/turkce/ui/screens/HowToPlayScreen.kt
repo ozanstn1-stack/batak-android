@@ -65,8 +65,11 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
                 "• Ele kozla başlanamaz: Turun ilk kartı koz olamaz. " +
                 "İstisna: Elinde koz renginden A, K ve Q birlikte varsa ya da elin tamamen " +
                 "koz kartlarından oluşuyorsa kozla başlayabilirsin.\n" +
-                "• Elinde o renk hiç yoksa koz atabilirsin. Masada koz varsa ve elinde ondan " +
-                "büyük bir koz varsa kozu büyütmek zorundasın.\n\n" +
+                "• Elinde o renk hiç yoksa koz atmak zorundasın: kozun varsa diğer " +
+                "kartlarını oynayamazsın. Masada koz varsa ve elinde ondan büyük bir koz varsa " +
+                "kozu büyütmek zorundasın. Kozun hiç yoksa istediğin kartı atabilirsin.\n" +
+                "• Eşli modda eşin eli kazanıyorsa koz atma zorunluluğu yoktur; istediğin kartı " +
+                "atabilirsin.\n\n" +
                 "Eli kazanan: elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek karttır."
         )
         Spacer(Modifier.height(12.dp))

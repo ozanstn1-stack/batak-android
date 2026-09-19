@@ -159,6 +159,7 @@ class AiSimulationTest {
                 val trick = mutableListOf<PlayedCard>()
                 var currentPlayer = leader
                 repeat(BatakRules.TRICK_SIZE) {
+                    val partnerWinning = BatakRules.partnerWinning(trick, trump, currentPlayer, mode)
                     val state = BatakGame(
                         hands = mutableHands.map { hand -> hand.toList() },
                         phase = GamePhase.PLAYING,
@@ -175,7 +176,7 @@ class AiSimulationTest {
                     val card = ais[currentPlayer].chooseCard(state, currentPlayer)
                     assertTrue(
                         "AI gecersiz kart secti: $card, el: ${mutableHands[currentPlayer]}, masa: $trick",
-                        BatakRules.isValidMove(mutableHands[currentPlayer], trick, card, trump)
+                        BatakRules.isValidMove(mutableHands[currentPlayer], trick, card, trump, partnerWinning)
                     )
                     mutableHands[currentPlayer].remove(card)
                     trick.add(PlayedCard(currentPlayer, card))

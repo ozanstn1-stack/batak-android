@@ -144,7 +144,7 @@ class BatakRulesTest {
     }
 
     @Test
-    fun `rengi yoksa koz atabilir`() {
+    fun `rengi yoksa koz atmak zorundadir`() {
         val hand = listOf(
             card(Suit.CLUBS, Rank.THREE),
             card(Suit.SPADES, Rank.SEVEN),
@@ -155,8 +155,51 @@ class BatakRulesTest {
             PlayedCard(1, card(Suit.HEARTS, Rank.FOUR))
         )
         val legal = BatakRules.legalMoves(hand, trick, Suit.SPADES)
-        assertEquals(3, legal.size)
+        assertEquals(2, legal.size)
+        assertTrue(legal.all { it.suit == Suit.SPADES })
+        assertFalse(BatakRules.isValidMove(hand, trick, card(Suit.CLUBS, Rank.THREE), Suit.SPADES))
         assertTrue(BatakRules.isValidMove(hand, trick, card(Suit.SPADES, Rank.SEVEN), Suit.SPADES))
+    }
+
+    @Test
+    fun `kozu yoksa istedigi karti atabilir`() {
+        val hand = listOf(
+            card(Suit.HEARTS, Rank.KING),
+            card(Suit.CLUBS, Rank.TWO)
+        )
+        val trick = listOf(PlayedCard(1, card(Suit.SPADES, Rank.NINE)))
+        val legal = BatakRules.legalMoves(hand, trick, Suit.DIAMONDS)
+        assertEquals(2, legal.size)
+        assertTrue(BatakRules.isValidMove(hand, trick, card(Suit.CLUBS, Rank.TWO), Suit.DIAMONDS))
+    }
+
+    @Test
+    fun `kozu buyutemiyorsa yine de koz atmak zorundadir`() {
+        val hand = listOf(
+            card(Suit.CLUBS, Rank.THREE),
+            card(Suit.SPADES, Rank.TWO)
+        )
+        val trick = listOf(
+            PlayedCard(0, card(Suit.HEARTS, Rank.NINE)),
+            PlayedCard(1, card(Suit.SPADES, Rank.KING))
+        )
+        val legal = BatakRules.legalMoves(hand, trick, Suit.SPADES)
+        assertEquals(listOf(card(Suit.SPADES, Rank.TWO)), legal)
+    }
+
+    @Test
+    fun `esli modda es kazaniyorsa koz zorunlulugu yoktur`() {
+        val hand = listOf(
+            card(Suit.CLUBS, Rank.THREE),
+            card(Suit.SPADES, Rank.SEVEN),
+            card(Suit.SPADES, Rank.ACE)
+        )
+        val trick = listOf(
+            PlayedCard(0, card(Suit.HEARTS, Rank.NINE)),
+            PlayedCard(2, card(Suit.HEARTS, Rank.ACE))
+        )
+        val legal = BatakRules.legalMoves(hand, trick, Suit.SPADES, partnerWinning = true)
+        assertEquals(3, legal.size)
     }
 
     @Test
@@ -171,24 +214,7 @@ class BatakRulesTest {
             PlayedCard(1, card(Suit.SPADES, Rank.KING))
         )
         val legal = BatakRules.legalMoves(hand, trick, Suit.SPADES)
-        assertEquals(2, legal.size)
-        assertTrue(legal.contains(card(Suit.CLUBS, Rank.THREE)))
-        assertTrue(legal.contains(card(Suit.SPADES, Rank.ACE)))
-        assertFalse(legal.contains(card(Suit.SPADES, Rank.SEVEN)))
-    }
-
-    @Test
-    fun `buyuk kozu yoksa istenen kart atilabilir`() {
-        val hand = listOf(
-            card(Suit.CLUBS, Rank.THREE),
-            card(Suit.SPADES, Rank.TWO)
-        )
-        val trick = listOf(
-            PlayedCard(0, card(Suit.HEARTS, Rank.NINE)),
-            PlayedCard(1, card(Suit.SPADES, Rank.KING))
-        )
-        val legal = BatakRules.legalMoves(hand, trick, Suit.SPADES)
-        assertEquals(2, legal.size)
+        assertEquals(listOf(card(Suit.SPADES, Rank.ACE)), legal)
     }
 
     @Test

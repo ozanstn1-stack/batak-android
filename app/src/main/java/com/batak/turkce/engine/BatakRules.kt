@@ -46,10 +46,16 @@ object BatakRules {
      *   kartından büyük bir kartı varsa onu oynamak zorundadır.
      * - Ele kozla başlanamaz (turun ilk kartı koz olamaz). İstisna: oyuncunun elinde koz
      *   renginden A, K ve Q birlikte varsa ya da eli tamamen kozdan oluşuyorsa kozla başlayabilir.
-     * - Rengi yoksa koz atabilir. Masada koz varsa ve elinde ondan büyük koz varsa kozu
-     *   büyütmek zorundadır.
+     * - Rengi yoksa ve elinde koz varsa koz atmak zorundadır; masada koz varsa ve elinde ondan
+     *   büyük koz varsa kozu büyütmek zorundadır.
+     * - Eşli modda eşi eli kazanıyorsa koz atma zorunluluğu yoktur (partnerWinning).
      */
-    fun legalMoves(hand: List<PlayingCard>, trick: List<PlayedCard>, trump: Suit?): List<PlayingCard> {
+    fun legalMoves(
+        hand: List<PlayingCard>,
+        trick: List<PlayedCard>,
+        trump: Suit?,
+        partnerWinning: Boolean = false
+    ): List<PlayingCard> {
         if (trick.isEmpty()) {
             if (trump == null) return hand
             val nonTrump = hand.filter { it.suit != trump }
@@ -64,11 +70,14 @@ object BatakRules {
             return higher.ifEmpty { follow }
         }
         if (trump == null) return hand
+        val trumpsInHand = hand.filter { it.suit == trump }
+        if (trumpsInHand.isEmpty()) return hand
+        if (partnerWinning) return hand
         val trumpsOnTable = trick.filter { it.card.suit == trump }
-        if (trumpsOnTable.isEmpty()) return hand
+        if (trumpsOnTable.isEmpty()) return trumpsInHand
         val highestTrumpOnTable = trumpsOnTable.maxOf { it.card.rank.value }
-        val higherTrumps = hand.filter { it.suit == trump && it.rank.value > highestTrumpOnTable }
-        return if (higherTrumps.isNotEmpty()) hand.filter { it.suit != trump } + higherTrumps else hand
+        val higherTrumps = trumpsInHand.filter { it.rank.value > highestTrumpOnTable }
+        return higherTrumps.ifEmpty { trumpsInHand }
     }
 
     fun holdsAkqOfTrump(hand: List<PlayingCard>, trump: Suit): Boolean {
@@ -76,8 +85,13 @@ object BatakRules {
         return Rank.ACE in ranks && Rank.KING in ranks && Rank.QUEEN in ranks
     }
 
-    fun isValidMove(hand: List<PlayingCard>, trick: List<PlayedCard>, card: PlayingCard, trump: Suit?): Boolean =
-        card in hand && card in legalMoves(hand, trick, trump)
+    fun isValidMove(
+        hand: List<PlayingCard>,
+        trick: List<PlayedCard>,
+        card: PlayingCard,
+        trump: Suit?,
+        partnerWinning: Boolean = false
+    ): Boolean = card in hand && card in legalMoves(hand, trick, trump, partnerWinning)
 
     fun trickWinner(trick: List<PlayedCard>, trump: Suit?): Int {
         require(trick.isNotEmpty()) { "Bos el icin kazanan hesaplanamaz" }
@@ -102,6 +116,13 @@ object BatakRules {
     }
 
     fun isPartner(a: Int, b: Int): Boolean = a % 2 == b % 2
+
+    /** Eşli modda eşin şu an eli kazanıp kazanmadığı. */
+    fun partnerWinning(trick: List<PlayedCard>, trump: Suit?, me: Int, mode: GameMode): Boolean {
+        if (mode != GameMode.PARTNERED || trick.isEmpty()) return false
+        val winner = trick[trickWinner(trick, trump)].player
+        return isPartner(winner, me)
+    }
 
     fun teamOf(player: Int): Int = player % 2
 

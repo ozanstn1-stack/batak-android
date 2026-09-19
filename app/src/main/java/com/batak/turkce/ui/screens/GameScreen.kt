@@ -127,9 +127,14 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
             }
         }
 
-        val legalSet = remember(game.hands, game.trick, game.trump, game.phase, game.currentPlayer) {
+        val legalSet = remember(game.hands, game.trick, game.trump, game.mode, game.phase, game.currentPlayer) {
             if (game.phase == GamePhase.PLAYING && game.currentPlayer == 0) {
-                BatakRules.legalMoves(game.hands.getOrElse(0) { emptyList() }, game.trick, game.trump).toSet()
+                BatakRules.legalMoves(
+                    hand = game.hands.getOrElse(0) { emptyList() },
+                    trick = game.trick,
+                    trump = game.trump,
+                    partnerWinning = BatakRules.partnerWinning(game.trick, game.trump, 0, game.mode)
+                ).toSet()
             } else {
                 emptySet()
             }
@@ -342,7 +347,7 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
                     onTap = { card ->
                         when {
                             game.phase != GamePhase.PLAYING || game.currentPlayer != 0 -> Unit
-                            card !in legalSet -> vm.invalidCardFeedback()
+                            card !in legalSet -> vm.invalidCardFeedback(card)
                             selected == card -> {
                                 selected = null
                                 vm.humanPlayCard(card)

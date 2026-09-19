@@ -252,27 +252,49 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val game = _game.value ?: return
         if (game.phase != GamePhase.PLAYING || game.currentPlayer != 0) return
         val hand = game.hands[0]
-        if (!BatakRules.isValidMove(hand, game.trick, card, game.trump)) {
-            val trumpLeadBlocked = game.trump != null &&
-                card.suit == game.trump &&
-                game.trick.isEmpty() &&
-                hand.any { it.suit != game.trump } &&
-                !BatakRules.holdsAkqOfTrump(hand, game.trump)
-            showToast(
-                if (trumpLeadBlocked) "Kozla el başlatamazsın (koz A, K, Q istisnası hariç)."
-                else "Bu kart şu an oynanamaz."
-            )
+        val partnerWinning = BatakRules.partnerWinning(game.trick, game.trump, 0, game.mode)
+        if (!BatakRules.isValidMove(hand, game.trick, card, game.trump, partnerWinning)) {
+            showToast(invalidMoveMessage(card))
             vibration.light()
             return
         }
         applyPlay(0, card)
     }
 
+    private fun invalidMoveMessage(card: PlayingCard): String {
+        val game = _game.value ?: return "Bu kart şu an oynanamaz."
+        val hand = game.hands.getOrElse(0) { emptyList() }
+        val trump = game.trump
+        val ledSuit = game.trick.firstOrNull()?.card?.suit
+        val partnerWinning = BatakRules.partnerWinning(game.trick, game.trump, 0, game.mode)
+        val trumpLeadBlocked = trump != null &&
+            card.suit == trump &&
+            game.trick.isEmpty() &&
+            hand.any { it.suit != trump } &&
+            !BatakRules.holdsAkqOfTrump(hand, trump)
+        val mustTrump = trump != null &&
+            card.suit != trump &&
+            ledSuit != null &&
+            !partnerWinning &&
+            hand.none { it.suit == ledSuit } &&
+            hand.any { it.suit == trump }
+        return when {
+            trumpLeadBlocked -> "Kozla el başlatamazsın (koz A, K, Q istisnası hariç)."
+            mustTrump -> "Rengin yok: koz atmak zorundasın."
+            else -> "Bu kart şu an oynanamaz."
+        }
+    }
+
     private fun applyPlay(player: Int, card: PlayingCard) {
         val game = _game.value ?: return
         if (game.phase != GamePhase.PLAYING || game.currentPlayer != player) return
         val hand = game.hands[player]
-        val legal = BatakRules.legalMoves(hand, game.trick, game.trump)
+        val legal = BatakRules.legalMoves(
+            hand = hand,
+            trick = game.trick,
+            trump = game.trump,
+            partnerWinning = BatakRules.partnerWinning(game.trick, game.trump, player, game.mode)
+        )
         val chosen = if (card in legal) card else legal.firstOrNull() ?: return
         val hands = game.hands.toMutableList()
         hands[player] = hand - chosen
@@ -405,8 +427,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun invalidCardFeedback() {
-        showToast("Bu kart şu an oynanamaz.")
+    fun invalidCardFeedback(card: PlayingCard) {
+        showToast(invalidMoveMessage(card))
         vibration.light()
     }
 

@@ -128,9 +128,10 @@ class BatakAi(
         val hand = game.hands[player]
         require(hand.isNotEmpty()) { "Bos elle kart secilemez" }
         val trump = game.trump ?: hand.first().suit
-        val legal = BatakRules.legalMoves(hand, game.trick, game.trump)
+        val partnerWinning = BatakRules.partnerWinning(game.trick, game.trump, player, game.mode)
+        val legal = BatakRules.legalMoves(hand, game.trick, game.trump, partnerWinning)
         if (legal.size == 1) return legal.first()
-        if (game.mode == GameMode.PARTNERED && game.trick.isNotEmpty() && partnerIsWinning(game, player)) {
+        if (partnerWinning) {
             return legal.minBy { cost(it, trump) }
         }
         return when (difficulty) {
@@ -138,12 +139,6 @@ class BatakAi(
             Difficulty.NORMAL -> normalCard(hand, legal, game, trump, player)
             Difficulty.HARD -> hardCard(hand, legal, game, trump, player)
         }
-    }
-
-    private fun partnerIsWinning(game: BatakGame, me: Int): Boolean {
-        if (game.trick.isEmpty()) return false
-        val winner = game.trick[BatakRules.trickWinner(game.trick, game.trump)].player
-        return BatakRules.isPartner(winner, me)
     }
 
     private fun winningCards(
