@@ -47,6 +47,12 @@ enum class Difficulty(val labelTr: String) {
     HARD("Zor")
 }
 
+@Serializable
+enum class GameMode(val labelTr: String, val descriptionTr: String) {
+    SOLO("Eşsiz (Tek)", "Herkes kendi ihalesini tutmaya çalışır. İhale 5'ten başlar."),
+    PARTNERED("Eşli (2v2)", "Karşılıklı oturanlar eş olur. İhale 7'den başlar.")
+}
+
 enum class CardDesign(val labelTr: String) {
     KLASIK("Klasik"),
     MODERN("Modern")

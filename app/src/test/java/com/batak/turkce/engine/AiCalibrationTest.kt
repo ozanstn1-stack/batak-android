@@ -2,6 +2,7 @@ package com.batak.turkce.engine
 
 import com.batak.turkce.ai.BatakAi
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import org.junit.Test
 import kotlin.random.Random
@@ -86,29 +87,39 @@ class AiCalibrationTest {
 
     @Test
     fun `ihale akisi all pass orani`() {
-        for (difficulty in listOf(Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD)) {
-            val rng = Random(99)
-            val ais = List(4) { BatakAi(difficulty, Random(rng.nextLong())) }
-            var redeals = 0
-            val total = 4000
-            repeat(total) { i ->
-                val dealer = i % 4
-                val hands = BatakRules.deal(rng.nextLong(), dealer)
-                val bids = MutableList<Int?>(4) { null }
-                var best = 0
-                var bestPlayer = -1
-                for (k in 0 until 4) {
-                    val p = (dealer + 1 + k) % 4
-                    val bid = ais[p].decideBid(hands[p], best, p == dealer, bids.count { it == 0 })
-                    bids[p] = bid
-                    if (bid > best) {
-                        best = bid
-                        bestPlayer = p
+        for (mode in listOf(GameMode.SOLO, GameMode.PARTNERED)) {
+            for (difficulty in listOf(Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD)) {
+                val rng = Random(99)
+                val ais = List(4) { BatakAi(difficulty, Random(rng.nextLong())) }
+                var redeals = 0
+                val total = 4000
+                repeat(total) { i ->
+                    val dealer = i % 4
+                    val hands = BatakRules.deal(rng.nextLong(), dealer)
+                    val bids = MutableList<Int?>(4) { null }
+                    var best = 0
+                    var bestPlayer = -1
+                    for (k in 0 until 4) {
+                        val p = (dealer + 1 + k) % 4
+                        val bid = ais[p].decideBid(
+                            hand = hands[p],
+                            highestBid = best,
+                            lastToBid = p == dealer,
+                            passedCount = bids.count { it == 0 },
+                            mode = mode,
+                            highestBidder = bestPlayer,
+                            myPlayer = p
+                        )
+                        bids[p] = bid
+                        if (bid > best) {
+                            best = bid
+                            bestPlayer = p
+                        }
                     }
+                    if (bestPlayer < 0) redeals++
                 }
-                if (bestPlayer < 0) redeals++
+                println("MODE=$mode DIFF=$difficulty allPassRate=%.3f".format(redeals.toDouble() / total))
             }
-            println("DIFF=$difficulty allPassRate=%.3f bidRate=%.3f".format(redeals.toDouble() / total, 0.0))
         }
     }
 

@@ -1,5 +1,6 @@
 package com.batak.turkce.engine
 
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Rank
 import com.batak.turkce.model.Suit
@@ -57,9 +58,42 @@ class BatakRulesTest {
         )
         val trick = listOf(PlayedCard(1, card(Suit.SPADES, Rank.NINE)))
         val legal = BatakRules.legalMoves(hand, trick)
-        assertEquals(2, legal.size)
-        assertTrue(legal.all { it.suit == Suit.SPADES })
+        assertEquals(listOf(card(Suit.SPADES, Rank.ACE)), legal)
         assertFalse(BatakRules.isValidMove(hand, trick, card(Suit.HEARTS, Rank.KING)))
+        assertFalse(BatakRules.isValidMove(hand, trick, card(Suit.SPADES, Rank.FIVE)))
+        assertTrue(BatakRules.isValidMove(hand, trick, card(Suit.SPADES, Rank.ACE)))
+    }
+
+    @Test
+    fun `kart yukseltme zorunlulugu uygulanir`() {
+        val hand = listOf(
+            card(Suit.HEARTS, Rank.TWO),
+            card(Suit.HEARTS, Rank.KING),
+            card(Suit.HEARTS, Rank.SIX),
+            card(Suit.CLUBS, Rank.THREE)
+        )
+        val trick = listOf(
+            PlayedCard(0, card(Suit.HEARTS, Rank.NINE)),
+            PlayedCard(1, card(Suit.HEARTS, Rank.FOUR))
+        )
+        val legal = BatakRules.legalMoves(hand, trick)
+        assertEquals(listOf(card(Suit.HEARTS, Rank.KING)), legal)
+    }
+
+    @Test
+    fun `yukseltme yapamiyorsa rengi takip etmek yeterli`() {
+        val hand = listOf(
+            card(Suit.HEARTS, Rank.TWO),
+            card(Suit.HEARTS, Rank.THREE),
+            card(Suit.CLUBS, Rank.ACE)
+        )
+        val trick = listOf(
+            PlayedCard(0, card(Suit.HEARTS, Rank.KING)),
+            PlayedCard(1, card(Suit.HEARTS, Rank.SIX))
+        )
+        val legal = BatakRules.legalMoves(hand, trick)
+        assertEquals(2, legal.size)
+        assertTrue(legal.all { it.suit == Suit.HEARTS })
     }
 
     @Test
@@ -125,10 +159,10 @@ class BatakRulesTest {
     }
 
     @Test
-    fun `puanlama ornek durumlari dogru hesaplar`() {
+    fun `essiz modda puanlama ornek durumlari dogru hesaplar`() {
         val bids = listOf(9, 8, 0, 12)
         val tricks = listOf(10, 7, 2, 1)
-        val scores = BatakRules.scoreRound(bids, tricks)
+        val scores = BatakRules.scoreRound(bids, tricks, GameMode.SOLO)
         assertEquals(10, scores[0])
         assertEquals(-8, scores[1])
         assertEquals(0, scores[2])
@@ -136,8 +170,8 @@ class BatakRulesTest {
     }
 
     @Test
-    fun `puanlama tam basarili ihalede el sayisini verir`() {
-        val scores = BatakRules.scoreRound(listOf(8, 0, 13, 0), listOf(13, 0, 13, 0))
+    fun `essiz modda tam basarili ihale el sayisini verir`() {
+        val scores = BatakRules.scoreRound(listOf(8, 0, 13, 0), listOf(13, 0, 13, 0), GameMode.SOLO)
         assertEquals(13, scores[0])
         assertEquals(0, scores[1])
         assertEquals(13, scores[2])
@@ -145,21 +179,67 @@ class BatakRulesTest {
     }
 
     @Test
-    fun `ihale dogrulama kurallari`() {
-        assertTrue(BatakRules.isValidBid(0, 0))
-        assertTrue(BatakRules.isValidBid(8, 0))
-        assertTrue(BatakRules.isValidBid(9, 8))
-        assertFalse(BatakRules.isValidBid(8, 8))
-        assertFalse(BatakRules.isValidBid(7, 0))
-        assertFalse(BatakRules.isValidBid(14, 0))
-        assertFalse(BatakRules.isValidBid(13, 13))
+    fun `esli modda tutulan ihale iki esede arti ihale yazar`() {
+        val bids = listOf(8, 0, 0, 0)
+        val tricks = listOf(5, 3, 5, 0)
+        val scores = BatakRules.scoreRound(bids, tricks, GameMode.PARTNERED, highestBidder = 0, highestBid = 8)
+        assertEquals(8, scores[0])
+        assertEquals(0, scores[1])
+        assertEquals(8, scores[2])
+        assertEquals(0, scores[3])
+    }
+
+    @Test
+    fun `esli modda tutulamayan ihale essizlere eksi yazar`() {
+        val bids = listOf(0, 9, 0, 0)
+        val tricks = listOf(2, 4, 3, 3)
+        val scores = BatakRules.scoreRound(bids, tricks, GameMode.PARTNERED, highestBidder = 1, highestBid = 9)
+        assertEquals(9, scores[0])
+        assertEquals(-9, scores[1])
+        assertEquals(9, scores[2])
+        assertEquals(-9, scores[3])
+    }
+
+    @Test
+    fun `takim yardimcilari dogru calisir`() {
+        assertTrue(BatakRules.isPartner(0, 2))
+        assertTrue(BatakRules.isPartner(1, 3))
+        assertFalse(BatakRules.isPartner(0, 1))
+        assertEquals(0, BatakRules.teamOf(0))
+        assertEquals(0, BatakRules.teamOf(2))
+        assertEquals(1, BatakRules.teamOf(1))
+        assertEquals(1, BatakRules.teamOf(3))
+    }
+
+    @Test
+    fun `essiz modda ihale dogrulama kurallari`() {
+        val mode = GameMode.SOLO
+        assertTrue(BatakRules.isValidBid(0, 0, mode))
+        assertTrue(BatakRules.isValidBid(5, 0, mode))
+        assertTrue(BatakRules.isValidBid(6, 5, mode))
+        assertFalse(BatakRules.isValidBid(5, 5, mode))
+        assertFalse(BatakRules.isValidBid(4, 0, mode))
+        assertFalse(BatakRules.isValidBid(14, 0, mode))
+        assertFalse(BatakRules.isValidBid(13, 13, mode))
+    }
+
+    @Test
+    fun `esli modda ihale 7den baslar`() {
+        val mode = GameMode.PARTNERED
+        assertTrue(BatakRules.isValidBid(7, 0, mode))
+        assertFalse(BatakRules.isValidBid(6, 0, mode))
+        assertTrue(BatakRules.isValidBid(8, 7, mode))
+        assertEquals(7, BatakRules.minBid(mode))
+        assertEquals(5, BatakRules.minBid(GameMode.SOLO))
     }
 
     @Test
     fun `gecerli teklif listesi dogru`() {
-        assertEquals(listOf(8, 9, 10, 11, 12, 13), BatakRules.nextBidOptions(0))
-        assertEquals(listOf(10, 11, 12, 13), BatakRules.nextBidOptions(9))
-        assertEquals(emptyList<Int>(), BatakRules.nextBidOptions(13))
+        assertEquals((5..13).toList(), BatakRules.nextBidOptions(0, GameMode.SOLO))
+        assertEquals((10..13).toList(), BatakRules.nextBidOptions(9, GameMode.SOLO))
+        assertEquals(emptyList<Int>(), BatakRules.nextBidOptions(13, GameMode.SOLO))
+        assertEquals((7..13).toList(), BatakRules.nextBidOptions(0, GameMode.PARTNERED))
+        assertEquals((12..13).toList(), BatakRules.nextBidOptions(11, GameMode.PARTNERED))
     }
 
     private fun card(suit: Suit, rank: Rank): PlayingCard = PlayingCard(suit, rank)

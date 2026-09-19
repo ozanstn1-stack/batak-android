@@ -4,6 +4,7 @@ import com.batak.turkce.engine.BatakGame
 import com.batak.turkce.engine.BatakRules
 import com.batak.turkce.engine.PlayedCard
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Rank
 import com.batak.turkce.model.Suit
@@ -11,7 +12,7 @@ import kotlin.random.Random
 
 /**
  * Kural tabanli Batak yapay zekasi.
- * Uc zorluk seviyesi: Kolay, Normal, Zor.
+ * Uc zorluk seviyesi: Kolay, Normal, Zor. Esli modda eşine karşı da oynar.
  */
 class BatakAi(
     val difficulty: Difficulty,
@@ -20,17 +21,32 @@ class BatakAi(
 
     // ---------------------------------------------------------------- IHALE
 
-    fun decideBid(hand: List<PlayingCard>, highestBid: Int, lastToBid: Boolean, passedCount: Int = 0): Int {
+    fun decideBid(
+        hand: List<PlayingCard>,
+        highestBid: Int,
+        lastToBid: Boolean,
+        passedCount: Int,
+        mode: GameMode = GameMode.SOLO,
+        highestBidder: Int = -1,
+        myPlayer: Int = -1
+    ): Int {
         val estimate = estimateTricks(hand)
-        val minBid = maxOf(BatakRules.MIN_BID, highestBid + 1)
+        val minAllowed = BatakRules.minBid(mode)
+        val minBid = maxOf(minAllowed, highestBid + 1)
         if (minBid > BatakRules.MAX_BID) return 0
 
         val base = when (difficulty) {
-            Difficulty.EASY -> 5.05 + random.nextDouble() * 0.7
-            Difficulty.NORMAL -> 4.55 + random.nextDouble() * 0.4
-            Difficulty.HARD -> 4.2 + random.nextDouble() * 0.35
+            Difficulty.EASY -> 3.85 + random.nextDouble() * 0.55
+            Difficulty.NORMAL -> 3.45 + random.nextDouble() * 0.35
+            Difficulty.HARD -> 3.2 + random.nextDouble() * 0.3
         }
-        val needed = base + (minBid - BatakRules.MIN_BID) * 1.0
+        var needed = base + (minBid - minAllowed) * 0.55
+        if (mode == GameMode.PARTNERED) {
+            needed -= 0.35
+            if (highestBidder >= 0 && myPlayer >= 0 && BatakRules.isPartner(highestBidder, myPlayer)) {
+                needed += 1.0
+            }
+        }
         var wantBid = estimate >= needed
 
         if (!wantBid && highestBid == 0) {
@@ -40,14 +56,14 @@ class BatakAi(
                 Difficulty.HARD -> passedCount >= 1
             }
             val rescue = when (difficulty) {
-                Difficulty.EASY -> 3.4
-                Difficulty.NORMAL -> 2.8
-                Difficulty.HARD -> 2.35
-            }
+                Difficulty.EASY -> 2.7
+                Difficulty.NORMAL -> 2.35
+                Difficulty.HARD -> 2.1
+            } - if (mode == GameMode.PARTNERED) 0.25 else 0.0
             if (readyToOpen && estimate >= rescue) wantBid = true
         }
 
-        if (!wantBid && lastToBid && highestBid == 0 && estimate >= 2.05) wantBid = true
+        if (!wantBid && lastToBid && highestBid == 0 && estimate >= 1.85) wantBid = true
 
         if (difficulty == Difficulty.EASY && random.nextDouble() < 0.08) {
             wantBid = !wantBid
@@ -129,14 +145,23 @@ class BatakAi(
     fun chooseCard(game: BatakGame, player: Int): PlayingCard {
         val hand = game.hands[player]
         require(hand.isNotEmpty()) { "Bos elle kart secilemez" }
-        val trump = game.trump ?: game.hands[player].firstOrNull()?.suit ?: Suit.SPADES
+        val trump = game.trump ?: hand.first().suit
         val legal = BatakRules.legalMoves(hand, game.trick)
         if (legal.size == 1) return legal.first()
+        if (game.mode == GameMode.PARTNERED && game.trick.isNotEmpty() && partnerIsWinning(game, player)) {
+            return legal.minBy { cost(it, trump) }
+        }
         return when (difficulty) {
             Difficulty.EASY -> easyCard(hand, legal, game.trick, trump, player)
             Difficulty.NORMAL -> normalCard(hand, legal, game, trump, player)
             Difficulty.HARD -> hardCard(hand, legal, game, trump, player)
         }
+    }
+
+    private fun partnerIsWinning(game: BatakGame, me: Int): Boolean {
+        if (game.trick.isEmpty()) return false
+        val winner = game.trick[BatakRules.trickWinner(game.trick, game.trump)].player
+        return BatakRules.isPartner(winner, me)
     }
 
     private fun winningCards(
@@ -247,7 +272,7 @@ class BatakAi(
         voids: Map<Int, Set<Suit>>,
         me: Int
     ): PlayingCard {
-        val opponents = (0..3).filter { it != me }
+        val opponents = (0..3).filter { it != me && !BatakRules.isPartner(it, me) }
         fun voidCount(suit: Suit) = opponents.count { suit in (voids[it] ?: emptySet()) }
 
         val bossCards = legal.filter { isBoss(it, hand, played) }

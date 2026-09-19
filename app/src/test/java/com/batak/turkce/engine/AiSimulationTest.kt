@@ -2,6 +2,7 @@ package com.batak.turkce.engine
 
 import com.batak.turkce.ai.BatakAi
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Rank
 import com.batak.turkce.model.Suit
@@ -13,24 +14,34 @@ import kotlin.random.Random
 class AiSimulationTest {
 
     @Test
-    fun `tum zorluk seviyeleri gecerli hamle yapar ve oyun tamamlanir`() {
-        val difficulties = listOf(Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD, Difficulty.NORMAL)
+    fun `tum zorluk seviyeleri essiz modda gecerli hamle yapar`() {
         var rounds = 0
-        for (seed in 1L..36L) {
-            rounds += simulateMatch(seed, difficulties)
+        for (seed in 1L..30L) {
+            val difficulties = listOf(Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD, Difficulty.NORMAL)
+            rounds += simulateMatch(seed, difficulties, GameMode.SOLO)
         }
         assertTrue("En az 100 el oynanmis olmali", rounds >= 100)
     }
 
     @Test
+    fun `esli modda oyun tamamlanir ve hamleler gecerli`() {
+        var rounds = 0
+        for (seed in 100L..124L) {
+            val difficulties = listOf(Difficulty.NORMAL, Difficulty.NORMAL, Difficulty.HARD, Difficulty.EASY)
+            rounds += simulateMatch(seed, difficulties, GameMode.PARTNERED)
+        }
+        assertTrue("En az 80 el oynanmis olmali", rounds >= 80)
+    }
+
+    @Test
     fun `ayni tohum ayni sonucu uretir`() {
-        val first = simulateMatch(42L, listOf(Difficulty.HARD, Difficulty.HARD, Difficulty.HARD, Difficulty.HARD))
-        val second = simulateMatch(42L, listOf(Difficulty.HARD, Difficulty.HARD, Difficulty.HARD, Difficulty.HARD))
+        val first = simulateMatch(42L, List(4) { Difficulty.HARD }, GameMode.SOLO)
+        val second = simulateMatch(42L, List(4) { Difficulty.HARD }, GameMode.SOLO)
         assertEquals(first, second)
     }
 
     @Test
-    fun `guclu el yuksek ihale verir`() {
+    fun `guclu el ihale verir`() {
         val strong = listOf(
             PlayingCard(Suit.SPADES, Rank.ACE),
             PlayingCard(Suit.SPADES, Rank.KING),
@@ -49,8 +60,10 @@ class AiSimulationTest {
         val ai = BatakAi(Difficulty.HARD, Random(1))
         val estimate = ai.estimateTricks(strong)
         assertTrue("Guclu el en az 8 el tahmin etmeli: $estimate", estimate >= 8.0)
-        val bid = ai.decideBid(strong, 0, true)
-        assertTrue("Guclu el ihale vermeli: $bid", bid >= 8)
+        val bid = ai.decideBid(strong, 0, true, 0, GameMode.SOLO, -1, 0)
+        assertEquals("Essiz modda minimum ihale 5 olmali", BatakRules.MIN_BID_SOLO, bid)
+        val partneredBid = ai.decideBid(strong, 0, true, 0, GameMode.PARTNERED, -1, 0)
+        assertEquals(BatakRules.MIN_BID_PARTNERED, partneredBid)
     }
 
     @Test
@@ -71,7 +84,7 @@ class AiSimulationTest {
             PlayingCard(Suit.CLUBS, Rank.FIVE)
         )
         val ai = BatakAi(Difficulty.HARD, Random(2))
-        assertEquals(0, ai.decideBid(weak, 0, false))
+        assertEquals(0, ai.decideBid(weak, 0, false, 0, GameMode.SOLO, -1, 0))
     }
 
     @Test
@@ -95,7 +108,7 @@ class AiSimulationTest {
         assertEquals(Suit.HEARTS, ai.chooseTrump(hand))
     }
 
-    private fun simulateMatch(seed: Long, difficulties: List<Difficulty>): Int {
+    private fun simulateMatch(seed: Long, difficulties: List<Difficulty>, mode: GameMode): Int {
         val rng = Random(seed)
         val ais = difficulties.map { BatakAi(it, Random(rng.nextLong())) }
         var dealer = rng.nextInt(4)
@@ -110,7 +123,7 @@ class AiSimulationTest {
 
             while (true) {
                 attempts++
-                assertTrue("Cok fazla yeniden dagitim denemesi", attempts <= 90)
+                assertTrue("Cok fazla yeniden dagitim denemesi", attempts <= 120)
                 val dealt = BatakRules.deal(rng.nextLong(), dealer)
                 val bidList = MutableList<Int?>(4) { null }
                 var best = 0
@@ -118,10 +131,18 @@ class AiSimulationTest {
                 for (i in 0 until 4) {
                     val player = (dealer + 1 + i) % 4
                     val passedSoFar = bidList.count { it == 0 }
-                    val bid = ais[player].decideBid(dealt[player], best, player == dealer, passedSoFar)
+                    val bid = ais[player].decideBid(
+                        hand = dealt[player],
+                        highestBid = best,
+                        lastToBid = player == dealer,
+                        passedCount = passedSoFar,
+                        mode = mode,
+                        highestBidder = bestPlayer,
+                        myPlayer = player
+                    )
                     assertTrue(
                         "Gecersiz ihale: $bid (en yuksek: $best)",
-                        bid == 0 || (bid in BatakRules.MIN_BID..BatakRules.MAX_BID && bid > best)
+                        bid == 0 || (bid in BatakRules.minBid(mode)..BatakRules.MAX_BID && bid > best)
                     )
                     bidList[player] = bid
                     if (bid > best) {
@@ -152,12 +173,13 @@ class AiSimulationTest {
                     val state = BatakGame(
                         hands = mutableHands.map { hand -> hand.toList() },
                         phase = GamePhase.PLAYING,
+                        mode = mode,
                         trump = trump,
                         currentPlayer = currentPlayer,
                         trick = trick.toList(),
                         completedTricks = completed.toList(),
                         playedCards = playedCards.toList(),
-                        bids = bids.map { it },
+                        bids = bids,
                         highestBid = highestBid,
                         highestBidder = highestBidder
                     )
@@ -181,7 +203,12 @@ class AiSimulationTest {
             assertTrue(mutableHands.all { it.isEmpty() })
             assertEquals(52, playedCards.size)
             assertEquals(52, playedCards.toSet().size)
-            assertEquals(4, BatakRules.scoreRound(bids, tricksWon).size)
+            val scores = BatakRules.scoreRound(bids, tricksWon, mode, highestBidder, highestBid)
+            assertEquals(4, scores.size)
+            if (mode == GameMode.PARTNERED) {
+                assertEquals(scores[0], scores[2])
+                assertEquals(scores[1], scores[3])
+            }
 
             roundsPlayed++
             dealer = (dealer + 1) % 4

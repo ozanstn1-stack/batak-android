@@ -1,6 +1,7 @@
 package com.batak.turkce.engine
 
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Suit
 import kotlinx.serialization.Serializable
@@ -31,6 +32,7 @@ data class RoundResult(
 data class BatakGame(
     val playerName: String = "Sen",
     val difficulty: Difficulty = Difficulty.NORMAL,
+    val mode: GameMode = GameMode.SOLO,
     val totalRounds: Int = 5,
     val roundNumber: Int = 1,
     val dealer: Int = 3,
