@@ -35,23 +35,36 @@ object BatakRules {
     }
 
     /**
-     * Takim rengi zorunlulugu ve kart yukseltme zorunlulugu:
-     * - Elinde takim rengi varsa o renkten oynamak zorundadir.
-     * - Oynanan en yuksek takim rengi kartindan buyuk bir karti varsa, onu oynamak zorundadir.
-     * - Rengi yoksa istedigi karti oynayabilir (koz atma zorunlulugu yoktur).
+     * Takım rengi zorunluluğu, kart yükseltme zorunluluğu ve koz kuralları:
+     * - Elinde takım rengi varsa o renkten oynamak zorundadır.
+     * - Oynanan en yüksek takım rengi kartından büyük bir kartı varsa, onu oynamak zorundadır.
+     * - Rengi yoksa: masaya henüz koz atılmamışsa koz atamaz (önce kozun ortaya çıkması gerekir),
+     *   koz atılmışsa kozu büyütmek zorundadır. Eli tamamen kozsa her durumda koz oynayabilir.
      */
-    fun legalMoves(hand: List<PlayingCard>, trick: List<PlayedCard>): List<PlayingCard> {
+    fun legalMoves(hand: List<PlayingCard>, trick: List<PlayedCard>, trump: Suit?): List<PlayingCard> {
         if (trick.isEmpty()) return hand
         val ledSuit = trick.first().card.suit
         val follow = hand.filter { it.suit == ledSuit }
-        if (follow.isEmpty()) return hand
-        val highestLed = trick.filter { it.card.suit == ledSuit }.maxOf { it.card.rank.value }
-        val higher = follow.filter { it.rank.value > highestLed }
-        return higher.ifEmpty { follow }
+        if (follow.isNotEmpty()) {
+            val highestLed = trick.filter { it.card.suit == ledSuit }.maxOf { it.card.rank.value }
+            val higher = follow.filter { it.rank.value > highestLed }
+            return higher.ifEmpty { follow }
+        }
+        if (trump == null) return hand
+        val trumpsInHand = hand.filter { it.suit == trump }
+        val nonTrump = hand.filter { it.suit != trump }
+        if (nonTrump.isEmpty()) return hand
+        val trumpsOnTable = trick.filter { it.card.suit == trump }
+        if (trumpsOnTable.isEmpty()) {
+            return nonTrump
+        }
+        val highestTrumpOnTable = trumpsOnTable.maxOf { it.card.rank.value }
+        val higherTrumps = trumpsInHand.filter { it.rank.value > highestTrumpOnTable }
+        return if (higherTrumps.isNotEmpty()) nonTrump + higherTrumps else hand
     }
 
-    fun isValidMove(hand: List<PlayingCard>, trick: List<PlayedCard>, card: PlayingCard): Boolean =
-        card in hand && card in legalMoves(hand, trick)
+    fun isValidMove(hand: List<PlayingCard>, trick: List<PlayedCard>, card: PlayingCard, trump: Suit?): Boolean =
+        card in hand && card in legalMoves(hand, trick, trump)
 
     fun trickWinner(trick: List<PlayedCard>, trump: Suit?): Int {
         require(trick.isNotEmpty()) { "Bos el icin kazanan hesaplanamaz" }
@@ -132,8 +145,8 @@ object BatakRules {
     fun trickOrder(startPlayer: Int): List<Int> = (0 until PLAYER_COUNT).map { (startPlayer + it) % PLAYER_COUNT }
 
     /**
-     * Elde gösterim için sıralama: önce renge göre (Maça, Kupa, Karo, Sinek),
-     * aynı renk içinde büyükten küçüğe (A, K, Q, ... 2).
+     * Elde gösterim için sıralama: renk grupları siyah-kırmızı dönüşümlü
+     * (Maça, Kupa, Sinek, Karo), her renk kendi içinde büyükten küçüğe (A, K, Q, ... 2).
      */
     fun sortHand(cards: List<PlayingCard>): List<PlayingCard> =
         cards.sortedWith(

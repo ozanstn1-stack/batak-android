@@ -127,9 +127,9 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
             }
         }
 
-        val legalSet = remember(game.hands, game.trick, game.phase, game.currentPlayer) {
+        val legalSet = remember(game.hands, game.trick, game.trump, game.phase, game.currentPlayer) {
             if (game.phase == GamePhase.PLAYING && game.currentPlayer == 0) {
-                BatakRules.legalMoves(game.hands.getOrElse(0) { emptyList() }, game.trick).toSet()
+                BatakRules.legalMoves(game.hands.getOrElse(0) { emptyList() }, game.trick, game.trump).toSet()
             } else {
                 emptySet()
             }

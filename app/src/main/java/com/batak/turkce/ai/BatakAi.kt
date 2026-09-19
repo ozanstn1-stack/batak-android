@@ -146,7 +146,7 @@ class BatakAi(
         val hand = game.hands[player]
         require(hand.isNotEmpty()) { "Bos elle kart secilemez" }
         val trump = game.trump ?: hand.first().suit
-        val legal = BatakRules.legalMoves(hand, game.trick)
+        val legal = BatakRules.legalMoves(hand, game.trick, game.trump)
         if (legal.size == 1) return legal.first()
         if (game.mode == GameMode.PARTNERED && game.trick.isNotEmpty() && partnerIsWinning(game, player)) {
             return legal.minBy { cost(it, trump) }

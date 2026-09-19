@@ -186,7 +186,7 @@ class AiSimulationTest {
                     val card = ais[currentPlayer].chooseCard(state, currentPlayer)
                     assertTrue(
                         "AI gecersiz kart secti: $card, el: ${mutableHands[currentPlayer]}, masa: $trick",
-                        BatakRules.isValidMove(mutableHands[currentPlayer], trick, card)
+                        BatakRules.isValidMove(mutableHands[currentPlayer], trick, card, trump)
                     )
                     mutableHands[currentPlayer].remove(card)
                     trick.add(PlayedCard(currentPlayer, card))

@@ -33,7 +33,8 @@ belirler ve herkes sözünü tutmaya çalışır.
 ## Özellikler
 
 - 52 kartlık gerçek deste, doğru kart sıralaması (A > K > Q > J > 10 … > 2)
-- Eldeki kartlar renklerine göre gruplanır, her renk kendi içinde büyükten küçüğe sıralanır
+- Eldeki kartlar renklerine göre gruplanır (Maça, Kupa, Sinek, Karo sırasıyla, siyah–kırmızı
+  dönüşümlü) ve her renk kendi içinde büyükten küçüğe sıralanır
 - Sıralı ihale sistemi (Eşsiz modda 5–13, Eşli modda 7–13, geçersiz teklifler engellenir)
 - Koz seçimi (♠ Maça, ♥ Kupa, ♦ Karo, ♣ Sinek)
 - Takım rengi zorunluluğu ve **kart yükseltme zorunluluğu**
@@ -76,7 +77,7 @@ Windows'ta `gradlew.bat` kullanın.
 Çıktı: `app/build/outputs/apk/release/app-release.apk`
 
 Hazır APK, depo kökündeki `apk/app-release.apk` dosyasındadır ve
-[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.1`
+[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.2`
 sürümüne eklenmiştir. APK, hata ayıklama anahtarıyla imzalanmıştır; telefona doğrudan
 kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 
@@ -101,7 +102,12 @@ kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 - **Kart yükseltme zorunluluğu:** Oynanan en yüksek takım rengi kartından daha büyük bir
   kartın varsa onu oynamak zorundasın (örnek: masaya 9 kupa atıldıysa ve elinde K kupa
   varsa K kupa oynamalısın).
-- Elinde o renk yoksa istediği kartı oynayabilir; koz atma zorunluluğu yoktur.
+- Elinde o renk yoksa:
+  - Masaya henüz koz atılmamışsa **koz atamazsın** (kozun önce ortaya çıkması gerekir);
+    başka bir renkten kart atarsın.
+  - Masaya koz atılmışsa koz atabilirsin; ancak elinde daha büyük bir koz varsa onu atmak
+    zorundasın (**kozu büyütme zorunluluğu**).
+  - Elin tamamen kozdan oluşuyorsa koz oynayabilirsin.
 - Elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek kart eli kazanır.
 - Eli kazanan oyuncu sıradaki eli başlatır.
 

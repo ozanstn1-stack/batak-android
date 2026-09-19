@@ -245,8 +245,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val game = _game.value ?: return
         if (game.phase != GamePhase.PLAYING || game.currentPlayer != 0) return
         val hand = game.hands[0]
-        if (!BatakRules.isValidMove(hand, game.trick, card)) {
-            showToast("Bu kart şu an oynanamaz.")
+        if (!BatakRules.isValidMove(hand, game.trick, card, game.trump)) {
+            val trumpBlocked = game.trump != null &&
+                card.suit == game.trump &&
+                game.trick.isNotEmpty() &&
+                game.trick.none { it.card.suit == game.trump } &&
+                hand.any { it.suit != game.trump }
+            showToast(
+                if (trumpBlocked) "Masaya koz atılmadan koz oynayamazsın."
+                else "Bu kart şu an oynanamaz."
+            )
             vibration.light()
             return
         }
@@ -257,7 +265,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val game = _game.value ?: return
         if (game.phase != GamePhase.PLAYING || game.currentPlayer != player) return
         val hand = game.hands[player]
-        val legal = BatakRules.legalMoves(hand, game.trick)
+        val legal = BatakRules.legalMoves(hand, game.trick, game.trump)
         val chosen = if (card in legal) card else legal.firstOrNull() ?: return
         val hands = game.hands.toMutableList()
         hands[player] = hand - chosen
