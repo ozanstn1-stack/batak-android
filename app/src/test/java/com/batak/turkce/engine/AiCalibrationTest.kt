@@ -91,7 +91,7 @@ class AiCalibrationTest {
             for (difficulty in listOf(Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD)) {
                 val rng = Random(99)
                 val ais = List(4) { BatakAi(difficulty, Random(rng.nextLong())) }
-                var redeals = 0
+                var forced = 0
                 val total = 4000
                 repeat(total) { i ->
                     val dealer = i % 4
@@ -104,8 +104,6 @@ class AiCalibrationTest {
                         val bid = ais[p].decideBid(
                             hand = hands[p],
                             highestBid = best,
-                            lastToBid = p == dealer,
-                            passedCount = bids.count { it == 0 },
                             mode = mode,
                             highestBidder = bestPlayer,
                             myPlayer = p
@@ -116,9 +114,9 @@ class AiCalibrationTest {
                             bestPlayer = p
                         }
                     }
-                    if (bestPlayer < 0) redeals++
+                    if (bestPlayer < 0) forced++
                 }
-                println("MODE=$mode DIFF=$difficulty allPassRate=%.3f".format(redeals.toDouble() / total))
+                println("MODE=$mode DIFF=$difficulty allPassForcedRate=%.3f".format(forced.toDouble() / total))
             }
         }
     }

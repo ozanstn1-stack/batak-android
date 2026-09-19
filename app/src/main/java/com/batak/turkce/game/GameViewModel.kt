@@ -87,7 +87,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             dealer = rng.nextInt(4)
         )
         _game.value = game
-        startDeal(game, redeal = false)
+        startDeal(game)
     }
 
     fun resumeSavedGame() {
@@ -95,7 +95,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         ais = List(4) { BatakAi(saved.difficulty, Random(rng.nextLong())) }
         _game.value = saved
         when (saved.phase) {
-            GamePhase.DEALING -> startDeal(saved, redeal = false, keepHands = true)
+            GamePhase.DEALING -> startDeal(saved, keepHands = true)
             GamePhase.ROUND_OVER, GamePhase.GAME_OVER -> Unit
             else -> pump()
         }
@@ -111,7 +111,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     // ---------------------------------------------------------------- DAGITIM
 
-    private fun startDeal(previous: BatakGame, redeal: Boolean, keepHands: Boolean = false) {
+    private fun startDeal(previous: BatakGame, keepHands: Boolean = false) {
         cancelJobs()
         val hands = if (keepHands && previous.hands.size == 4 && previous.hands.all { it.size == BatakRules.HAND_SIZE }) {
             previous.hands
@@ -133,8 +133,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             completedTricks = emptyList(),
             playedCards = emptyList(),
             lastTrickWinner = -1,
-            roundResult = null,
-            redealCount = if (redeal) previous.redealCount + 1 else 0
+            roundResult = null
         )
         update(game)
         val animated = _settings.value.animationsEnabled
@@ -187,15 +186,23 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val bidsPlaced = bids.count { it != null }
         if (bidsPlaced >= 4) {
             if (highestBidder == -1) {
-                update(game.copy(bids = bids))
-                showToast("Herkes pas geçti. Kartlar yeniden dağıtılıyor.")
-                viewModelScope.launch {
-                    delay(1300)
-                    val current = _game.value ?: return@launch
-                    if (current.phase == GamePhase.BIDDING && current.bids.count { it != null } >= 4) {
-                        startDeal(current, redeal = true)
-                    }
-                }
+                val firstBidder = (game.dealer + 1) % BatakRules.PLAYER_COUNT
+                val forced = BatakRules.forcedBid(game.mode)
+                val forcedBids = bids.toMutableList().also { it[firstBidder] = forced }
+                update(
+                    game.copy(
+                        bids = forcedBids,
+                        highestBid = forced,
+                        highestBidder = firstBidder,
+                        phase = GamePhase.TRUMP_SELECTION
+                    )
+                )
+                showToast(
+                    if (firstBidder == 0) "Herkes pas geçti: ihale $forced'e sana kaldı. Kozu seç."
+                    else "Herkes pas geçti: ihale $forced'e kaldı. ${nameOf(firstBidder)} koz seçiyor..."
+                )
+                audio.play(R.raw.bid, 0.7f)
+                pump()
                 return
             }
             val next = game.copy(bids = bids, highestBid = highestBid, highestBidder = highestBidder, phase = GamePhase.TRUMP_SELECTION)
@@ -246,13 +253,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (game.phase != GamePhase.PLAYING || game.currentPlayer != 0) return
         val hand = game.hands[0]
         if (!BatakRules.isValidMove(hand, game.trick, card, game.trump)) {
-            val trumpBlocked = game.trump != null &&
+            val trumpLeadBlocked = game.trump != null &&
                 card.suit == game.trump &&
-                game.trick.isNotEmpty() &&
-                game.trick.none { it.card.suit == game.trump } &&
-                hand.any { it.suit != game.trump }
+                game.trick.isEmpty() &&
+                hand.any { it.suit != game.trump } &&
+                !BatakRules.holdsAkqOfTrump(hand, game.trump)
             showToast(
-                if (trumpBlocked) "Masaya koz atılmadan koz oynayamazsın."
+                if (trumpLeadBlocked) "Kozla el başlatamazsın (koz A, K, Q istisnası hariç)."
                 else "Bu kart şu an oynanamaz."
             )
             vibration.light()
@@ -360,7 +367,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (game.roundNumber >= game.totalRounds) {
             finishMatch(game)
         } else {
-            startDeal(game.copy(roundNumber = game.roundNumber + 1, dealer = (game.dealer + 1) % BatakRules.PLAYER_COUNT), redeal = false)
+            startDeal(game.copy(roundNumber = game.roundNumber + 1, dealer = (game.dealer + 1) % BatakRules.PLAYER_COUNT))
         }
     }
 
@@ -425,8 +432,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                         val bid = bidder.decideBid(
                             hand = current.hands[player],
                             highestBid = current.highestBid,
-                            lastToBid = player == current.dealer,
-                            passedCount = current.bids.count { it == 0 },
                             mode = current.mode,
                             highestBidder = current.highestBidder,
                             myPlayer = player

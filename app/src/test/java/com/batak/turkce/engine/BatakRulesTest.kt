@@ -109,7 +109,42 @@ class BatakRulesTest {
     }
 
     @Test
-    fun `masaya koz atilmadan koz oynanamaz`() {
+    fun `ele kozla baslanamaz`() {
+        val hand = listOf(
+            card(Suit.SPADES, Rank.ACE),
+            card(Suit.SPADES, Rank.SEVEN),
+            card(Suit.CLUBS, Rank.THREE)
+        )
+        val legal = BatakRules.legalMoves(hand, emptyList(), Suit.SPADES)
+        assertEquals(listOf(card(Suit.CLUBS, Rank.THREE)), legal)
+        assertFalse(BatakRules.isValidMove(hand, emptyList(), card(Suit.SPADES, Rank.ACE), Suit.SPADES))
+    }
+
+    @Test
+    fun `koz A K Q varsa kozla baslanabilir`() {
+        val hand = listOf(
+            card(Suit.SPADES, Rank.ACE),
+            card(Suit.SPADES, Rank.KING),
+            card(Suit.SPADES, Rank.QUEEN),
+            card(Suit.CLUBS, Rank.THREE)
+        )
+        val legal = BatakRules.legalMoves(hand, emptyList(), Suit.SPADES)
+        assertEquals(4, legal.size)
+        assertTrue(BatakRules.holdsAkqOfTrump(hand, Suit.SPADES))
+    }
+
+    @Test
+    fun `eli tamamen koz olan oyuncu kozla baslayabilir`() {
+        val hand = listOf(
+            card(Suit.SPADES, Rank.TWO),
+            card(Suit.SPADES, Rank.FIVE)
+        )
+        val legal = BatakRules.legalMoves(hand, emptyList(), Suit.SPADES)
+        assertEquals(2, legal.size)
+    }
+
+    @Test
+    fun `rengi yoksa koz atabilir`() {
         val hand = listOf(
             card(Suit.CLUBS, Rank.THREE),
             card(Suit.SPADES, Rank.SEVEN),
@@ -120,8 +155,8 @@ class BatakRulesTest {
             PlayedCard(1, card(Suit.HEARTS, Rank.FOUR))
         )
         val legal = BatakRules.legalMoves(hand, trick, Suit.SPADES)
-        assertEquals(listOf(card(Suit.CLUBS, Rank.THREE)), legal)
-        assertFalse(BatakRules.isValidMove(hand, trick, card(Suit.SPADES, Rank.ACE), Suit.SPADES))
+        assertEquals(3, legal.size)
+        assertTrue(BatakRules.isValidMove(hand, trick, card(Suit.SPADES, Rank.SEVEN), Suit.SPADES))
     }
 
     @Test
@@ -168,9 +203,22 @@ class BatakRulesTest {
     }
 
     @Test
-    fun `bos el icin tum kartlar oynanabilir`() {
+    fun `bos el ve kozsuz durumda tum kartlar oynanabilir`() {
         val hand = BatakRules.deal(3L, 0)[0].toList()
-        assertEquals(13, BatakRules.legalMoves(hand, emptyList(), Suit.SPADES).size)
+        assertEquals(13, BatakRules.legalMoves(hand, emptyList(), null).size)
+    }
+
+    @Test
+    fun `ele kozla baslanamaz ama koz disi tum kartlar oynanabilir`() {
+        val hand = listOf(
+            card(Suit.SPADES, Rank.ACE),
+            card(Suit.HEARTS, Rank.TWO),
+            card(Suit.CLUBS, Rank.FIVE),
+            card(Suit.DIAMONDS, Rank.NINE)
+        )
+        val legal = BatakRules.legalMoves(hand, emptyList(), Suit.SPADES)
+        assertEquals(3, legal.size)
+        assertTrue(legal.none { it.suit == Suit.SPADES })
     }
 
     @Test

@@ -42,8 +42,9 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
                 "• Eşli (2v2) modda ihale 7'den başlar: 7, 8, 9, 10, 11, 12, 13\n\n" +
                 "Her yeni teklif, o ana kadarki en yüksek tekliften büyük olmalıdır. " +
                 "Örneğin biri 7 dediyse, sonraki oyuncular yalnızca 8 ve üzerini söyleyebilir. " +
-                "En yüksek ihaleyi veren oyuncu kozu belirler. " +
-                "Herkes pas geçerse kartlar yeniden dağıtılır."
+                "En yüksek ihaleyi veren oyuncu kozu belirler.\n\n" +
+                "Herkes pas geçerse kartlar yeniden dağıtılmaz: ihale, ihaleye ilk giren oyuncuya " +
+                "zorunlu olarak kalır (eşsiz modda 4 el, eşli modda 7 el) ve o oyuncu kozu seçer."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
@@ -61,12 +62,11 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
                 "• Kart yükseltme zorunluluğu: Oynanan en yüksek takım rengi kartından " +
                 "daha büyük bir kartın varsa, onu oynamak zorundasın. " +
                 "Örneğin masaya 9 kupa atıldıysa ve elinde K kupa varsa K kupa oynamalısın.\n" +
-                "• Elinde o renk hiç yoksa:\n" +
-                "   – Masaya henüz koz atılmamışsa koz atamazsın; kozun önce ortaya çıkması gerekir. " +
-                "Bu durumda başka bir renkten kart atarsın.\n" +
-                "   – Masaya koz atılmışsa koz atabilirsin; fakat elinde daha büyük bir koz varsa " +
-                "onu atmak zorundasın (kozu büyütme zorunluluğu).\n" +
-                "   – Elin tamamen kozdan oluşuyorsa koz oynayabilirsin.\n\n" +
+                "• Ele kozla başlanamaz: Turun ilk kartı koz olamaz. " +
+                "İstisna: Elinde koz renginden A, K ve Q birlikte varsa ya da elin tamamen " +
+                "koz kartlarından oluşuyorsa kozla başlayabilirsin.\n" +
+                "• Elinde o renk hiç yoksa koz atabilirsin. Masada koz varsa ve elinde ondan " +
+                "büyük bir koz varsa kozu büyütmek zorundasın.\n\n" +
                 "Eli kazanan: elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek karttır."
         )
         Spacer(Modifier.height(12.dp))

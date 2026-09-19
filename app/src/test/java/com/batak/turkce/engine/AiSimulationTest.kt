@@ -60,9 +60,9 @@ class AiSimulationTest {
         val ai = BatakAi(Difficulty.HARD, Random(1))
         val estimate = ai.estimateTricks(strong)
         assertTrue("Guclu el en az 8 el tahmin etmeli: $estimate", estimate >= 8.0)
-        val bid = ai.decideBid(strong, 0, true, 0, GameMode.SOLO, -1, 0)
+        val bid = ai.decideBid(strong, 0, GameMode.SOLO, -1, 0)
         assertEquals("Essiz modda minimum ihale 5 olmali", BatakRules.MIN_BID_SOLO, bid)
-        val partneredBid = ai.decideBid(strong, 0, true, 0, GameMode.PARTNERED, -1, 0)
+        val partneredBid = ai.decideBid(strong, 0, GameMode.PARTNERED, -1, 0)
         assertEquals(BatakRules.MIN_BID_PARTNERED, partneredBid)
     }
 
@@ -84,7 +84,7 @@ class AiSimulationTest {
             PlayingCard(Suit.CLUBS, Rank.FIVE)
         )
         val ai = BatakAi(Difficulty.HARD, Random(2))
-        assertEquals(0, ai.decideBid(weak, 0, false, 0, GameMode.SOLO, -1, 0))
+        assertEquals(0, ai.decideBid(weak, 0, GameMode.SOLO, -1, 0))
     }
 
     @Test
@@ -115,49 +115,38 @@ class AiSimulationTest {
         var roundsPlayed = 0
 
         repeat(5) {
-            var attempts = 0
-            val hands: List<List<PlayingCard>>
-            val bids: List<Int>
-            val highestBid: Int
-            val highestBidder: Int
-
-            while (true) {
-                attempts++
-                assertTrue("Cok fazla yeniden dagitim denemesi", attempts <= 120)
-                val dealt = BatakRules.deal(rng.nextLong(), dealer)
-                val bidList = MutableList<Int?>(4) { null }
-                var best = 0
-                var bestPlayer = -1
-                for (i in 0 until 4) {
-                    val player = (dealer + 1 + i) % 4
-                    val passedSoFar = bidList.count { it == 0 }
-                    val bid = ais[player].decideBid(
-                        hand = dealt[player],
-                        highestBid = best,
-                        lastToBid = player == dealer,
-                        passedCount = passedSoFar,
-                        mode = mode,
-                        highestBidder = bestPlayer,
-                        myPlayer = player
-                    )
-                    assertTrue(
-                        "Gecersiz ihale: $bid (en yuksek: $best)",
-                        bid == 0 || (bid in BatakRules.minBid(mode)..BatakRules.MAX_BID && bid > best)
-                    )
-                    bidList[player] = bid
-                    if (bid > best) {
-                        best = bid
-                        bestPlayer = player
-                    }
-                }
-                if (bestPlayer >= 0) {
-                    hands = dealt
-                    bids = bidList.map { it ?: 0 }
-                    highestBid = best
-                    highestBidder = bestPlayer
-                    break
+            val dealt = BatakRules.deal(rng.nextLong(), dealer)
+            val bidList = MutableList<Int?>(4) { null }
+            var best = 0
+            var bestPlayer = -1
+            for (i in 0 until 4) {
+                val player = (dealer + 1 + i) % 4
+                val bid = ais[player].decideBid(
+                    hand = dealt[player],
+                    highestBid = best,
+                    mode = mode,
+                    highestBidder = bestPlayer,
+                    myPlayer = player
+                )
+                assertTrue(
+                    "Gecersiz ihale: $bid (en yuksek: $best)",
+                    bid == 0 || (bid in BatakRules.minBid(mode)..BatakRules.MAX_BID && bid > best)
+                )
+                bidList[player] = bid
+                if (bid > best) {
+                    best = bid
+                    bestPlayer = player
                 }
             }
+            if (bestPlayer < 0) {
+                bestPlayer = (dealer + 1) % 4
+                best = BatakRules.forcedBid(mode)
+                bidList[bestPlayer] = best
+            }
+            val hands: List<List<PlayingCard>> = dealt
+            val bids: List<Int> = bidList.map { it ?: 0 }
+            val highestBid: Int = best
+            val highestBidder: Int = bestPlayer
 
             val trump = ais[highestBidder].chooseTrump(hands[highestBidder])
             val mutableHands = hands.map { it.toMutableList() }

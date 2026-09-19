@@ -24,8 +24,6 @@ class BatakAi(
     fun decideBid(
         hand: List<PlayingCard>,
         highestBid: Int,
-        lastToBid: Boolean,
-        passedCount: Int,
         mode: GameMode = GameMode.SOLO,
         highestBidder: Int = -1,
         myPlayer: Int = -1
@@ -48,22 +46,6 @@ class BatakAi(
             }
         }
         var wantBid = estimate >= needed
-
-        if (!wantBid && highestBid == 0) {
-            val readyToOpen = when (difficulty) {
-                Difficulty.EASY -> passedCount >= 3
-                Difficulty.NORMAL -> passedCount >= 2
-                Difficulty.HARD -> passedCount >= 1
-            }
-            val rescue = when (difficulty) {
-                Difficulty.EASY -> 2.7
-                Difficulty.NORMAL -> 2.35
-                Difficulty.HARD -> 2.1
-            } - if (mode == GameMode.PARTNERED) 0.25 else 0.0
-            if (readyToOpen && estimate >= rescue) wantBid = true
-        }
-
-        if (!wantBid && lastToBid && highestBid == 0 && estimate >= 1.85) wantBid = true
 
         if (difficulty == Difficulty.EASY && random.nextDouble() < 0.08) {
             wantBid = !wantBid

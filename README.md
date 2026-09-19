@@ -77,7 +77,7 @@ Windows'ta `gradlew.bat` kullanın.
 Çıktı: `app/build/outputs/apk/release/app-release.apk`
 
 Hazır APK, depo kökündeki `apk/app-release.apk` dosyasındadır ve
-[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.2`
+[Releases](https://github.com/ozanstn1-stack/batak-android/releases) sayfasında `v1.1.3`
 sürümüne eklenmiştir. APK, hata ayıklama anahtarıyla imzalanmıştır; telefona doğrudan
 kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 
@@ -93,7 +93,8 @@ kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 - **Eşli (2v2) modda** ihale **7'den** başlar: 7, 8, 9, 10, 11, 12, 13
 - Her teklif, o ana kadarki en yüksek tekliften büyük olmalıdır.
 - En yüksek ihaleyi veren oyuncu **koz** rengini seçer.
-- Herkes pas geçerse kartlar yeniden dağıtılır.
+- Herkes pas geçerse kartlar yeniden dağıtılmaz; ihale, ihaleye ilk giren oyuncuya zorunlu
+  olarak kalır (eşsiz modda **4 el**, eşli modda **7 el**) ve o oyuncu kozu belirler.
 
 ### Kart Oynama
 
@@ -102,12 +103,11 @@ kurulabilir (bilinmeyen kaynaklardan yükleme izni gerekir).
 - **Kart yükseltme zorunluluğu:** Oynanan en yüksek takım rengi kartından daha büyük bir
   kartın varsa onu oynamak zorundasın (örnek: masaya 9 kupa atıldıysa ve elinde K kupa
   varsa K kupa oynamalısın).
-- Elinde o renk yoksa:
-  - Masaya henüz koz atılmamışsa **koz atamazsın** (kozun önce ortaya çıkması gerekir);
-    başka bir renkten kart atarsın.
-  - Masaya koz atılmışsa koz atabilirsin; ancak elinde daha büyük bir koz varsa onu atmak
-    zorundasın (**kozu büyütme zorunluluğu**).
-  - Elin tamamen kozdan oluşuyorsa koz oynayabilirsin.
+- **Ele kozla başlanamaz:** Turun ilk kartı koz olamaz. İstisna: oyuncunun elinde koz
+  renginden **A, K ve Q birlikte** varsa ya da eli tamamen kozdan oluşuyorsa kozla
+  başlayabilir.
+- Elinde o renk yoksa koz atabilir; ancak masadaki en yüksek kozdan daha büyük bir kozu
+  varsa **kozu büyütmek zorundadır**.
 - Elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek kart eli kazanır.
 - Eli kazanan oyuncu sıradaki eli başlatır.
 
