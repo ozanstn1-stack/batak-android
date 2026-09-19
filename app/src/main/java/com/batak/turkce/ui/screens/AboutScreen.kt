@@ -27,7 +27,7 @@ fun AboutScreen(vm: GameViewModel, onBack: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Sürüm 1.0.0",
+                text = "Sürüm 1.1.0",
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 fontSize = 12.sp
             )
@@ -51,8 +51,9 @@ fun AboutScreen(vm: GameViewModel, onBack: () -> Unit) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "• 3 zorluk seviyesinde yapay zekâ rakipler\n" +
-                    "• Tam ihale sistemi ve koz seçimi\n" +
+                text = "• Eşsiz (tek) ve eşli (2v2) oyun modları\n" +
+                    "• 3 zorluk seviyesinde yapay zekâ rakipler\n" +
+                    "• Tam ihale sistemi (5–13), koz seçimi ve kart yükseltme zorunluluğu\n" +
                     "• Animasyonlu kart dağıtımı ve kart oyunu\n" +
                     "• Ses efektleri ve titreşim\n" +
                     "• Kalıcı istatistikler ve oyun kaydı\n" +

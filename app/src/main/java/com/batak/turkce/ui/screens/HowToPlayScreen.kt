@@ -21,26 +21,26 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
             title = "AMAÇ",
             body = "İhaleli Batak, 4 oyuncunun 52 kartlık desteyle oynadığı bir el oyunudur. " +
                 "Her oyuncuya 13 kart dağıtılır ve toplam 13 el oynanır. " +
-                "Her oyuncu ihale turunda aldığı el sayısını taahhüt eder; " +
-                "taahhüdünü tutan puan kazanır, tutamayan ceza puanı alır."
+                "Oyuncular ihale turunda alacakları el sayısını söyler; " +
+                "sözünü tutan puan kazanır, tutamayan ceza puanı alır."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
             title = "KART SIRALAMASI",
-            body = "A (As) > K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2\n" +
-                "Renkler: ♠ Maça, ♥ Kupa, ♦ Karo, ♣ Sinek. Kupa ve Karo kırmızıdır. " +
+            body = "A (As) > K (Papaz) > Q (Kız) > J (Vale) > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2\n" +
+                "Renkler: Maça, Kupa, Karo, Sinek. Kupa ve Karo kırmızı, Maça ve Sinek siyahtır. " +
                 "Koz dışında hiçbir renk diğerinden üstün değildir."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
             title = "İHALE",
-            body = "Sırayla her oyuncu 8 ile 13 arasında bir el sayısı söyler ya da \"Pas\" der. " +
+            body = "Sırayla her oyuncu bir el sayısı söyler ya da \"Pas\" der.\n\n" +
+                "• Eşsiz (tek) modda ihale 5'ten başlar: 5, 6, 7, 8, 9, 10, 11, 12, 13\n" +
+                "• Eşli (2v2) modda ihale 7'den başlar: 7, 8, 9, 10, 11, 12, 13\n\n" +
                 "Her yeni teklif, o ana kadarki en yüksek tekliften büyük olmalıdır. " +
-                "Örneğin biri 9 dediyse, sonraki oyuncular yalnızca 10, 11, 12 veya 13 diyebilir. " +
+                "Örneğin biri 7 dediyse, sonraki oyuncular yalnızca 8 ve üzerini söyleyebilir. " +
                 "En yüksek ihaleyi veren oyuncu kozu belirler. " +
-                "Herkes pas geçerse kartlar yeniden dağıtılır.\n\n" +
-                "Not: Bu oyunda her oyuncu kendi verdiği ihaleyle yükümlüdür. " +
-                "Pas geçen oyuncu o elden puan alamaz."
+                "Herkes pas geçerse kartlar yeniden dağıtılır."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
@@ -54,30 +54,44 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
         HelpSection(
             title = "KART OYNAMA KURALLARI",
             body = "• Elin ilk kartını oynayan oyuncu rengi (takımı) belirler.\n" +
-                "• Diğer oyuncular ellerinde o renkten kart varsa mutlaka o renkten oynamak zorundadır.\n" +
-                "• Elinde o renk yoksa istediği kartı oynayabilir: koz atabilir veya başka renk atabilir.\n" +
-                "• Koz atma zorunluluğu yoktur; koz atmadan da kesebilir.\n\n" +
+                "• Elinde o renkten kart varsa mutlaka o renkten oynamak zorundadır.\n" +
+                "• Kart yükseltme zorunluluğu: Oynanan en yüksek takım rengi kartından " +
+                "daha büyük bir kartın varsa, onu oynamak zorundasın. " +
+                "Örneğin masaya 9 kupa atıldıysa ve elinde K kupa varsa K kupa oynamalısın.\n" +
+                "• Elinde o renk hiç yoksa istediği kartı oynayabilir: koz atabilir veya " +
+                "başka renk atabilir. Koz atma zorunluluğu yoktur.\n\n" +
                 "Eli kazanan: elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek karttır."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
-            title = "PUANLAMA",
-            body = "El bittiğinde her oyuncu kendi sonucuna göre puan alır:\n\n" +
+            title = "EŞSİZ (TEK) MOD PUANLAMA",
+            body = "Her oyuncu kendi verdiği ihaleyle yükümlüdür:\n\n" +
                 "• İhalesini tutan (aldığı el ≥ ihalesi): aldığı el sayısı kadar artı puan.\n" +
                 "   Örnek: İhalesi 9, aldığı el 10 → +10 puan\n" +
                 "• İhalesini tutamayan: ihalesi kadar eksi puan.\n" +
-                "   Örnek: İhalesi 8, aldığı el 7 → -8 puan\n" +
+                "   Örnek: İhalesi 8, aldığı el 7 → −8 puan\n" +
                 "• Pas geçen: 0 puan\n\n" +
                 "Oyun sonunda en yüksek toplam puana ulaşan oyuncu kazanır."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
+            title = "EŞLİ (2V2) MOD",
+            body = "Karşılıklı oturan iki oyuncu eş olur:\n" +
+                "Sen + Rakip 2  ·  Rakip 1 + Rakip 3\n\n" +
+                "Yalnızca en yüksek ihaleyi veren taraf sözleşmelidir. " +
+                "Takımın toplam el sayısı ihaleyi tutarsa iki eş de + ihale puanı alır; " +
+                "tutamazsa iki eş de − ihale puanı alır ve rakip takımın üyeleri + ihale puanı kazanır.\n\n" +
+                "Örnek: İhale 8, senin takımın toplam 9 el aldı → iki eş de +8 puan."
+        )
+        Spacer(Modifier.height(12.dp))
+        HelpSection(
             title = "İPUÇLARI",
             body = "• İhale verirken elindeki yüksek kartları ve renk uzunluklarını değerlendir.\n" +
-                "• As ve kral içeren uzun renkler el kazandırır.\n" +
+                "• As ve papaz içeren uzun renkler el kazandırır.\n" +
                 "• Koz sayısı fazla olan renkleri koz seçmek avantaj sağlar.\n" +
                 "• Elinde olmayan renklerden sonradan koz atarak el kazanabilirsin.\n" +
-                "• Yüksek kartlarını erken kullanma; rakibin elini takip et."
+                "• Yüksek kartlarını erken kullanma; rakiplerin oynadığı kartları takip et.\n" +
+                "• Eşli modda eşinin elini kazanmasına engel olma, gereksiz yere üstüne kart atma."
         )
     }
 }

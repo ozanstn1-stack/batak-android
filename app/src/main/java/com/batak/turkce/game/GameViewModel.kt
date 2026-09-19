@@ -16,6 +16,7 @@ import com.batak.turkce.engine.RoundResult
 import com.batak.turkce.model.AppTheme
 import com.batak.turkce.model.CardDesign
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Suit
 import kotlinx.coroutines.Job
@@ -80,6 +81,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val game = BatakGame(
             playerName = s.playerName.ifBlank { "Oyuncu" },
             difficulty = s.difficulty,
+            mode = s.gameMode,
             totalRounds = s.roundsPerGame,
             roundNumber = 1,
             dealer = rng.nextInt(4)
@@ -156,7 +158,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun canHumanBid(value: Int): Boolean {
         val game = _game.value ?: return false
-        return game.phase == GamePhase.BIDDING && game.bidTurn == 0 && BatakRules.isValidBid(value, game.highestBid)
+        return game.phase == GamePhase.BIDDING && game.bidTurn == 0 &&
+            BatakRules.isValidBid(value, game.highestBid, game.mode)
     }
 
     fun humanBid(value: Int) {
@@ -171,7 +174,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private fun applyBid(player: Int, bid: Int) {
         val game = _game.value ?: return
         if (game.phase != GamePhase.BIDDING) return
-        val valid = if (bid == 0) 0 else bid.takeIf { BatakRules.isValidBid(it, game.highestBid) } ?: 0
+        val valid = if (bid == 0) 0 else bid.takeIf { BatakRules.isValidBid(it, game.highestBid, game.mode) } ?: 0
         val bids = game.bids.toMutableList()
         bids[player] = valid
         var highestBid = game.highestBid
@@ -231,7 +234,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             trick = emptyList()
         )
         update(next)
-        showToast("Koz: ${suit.labelTr} ${suit.symbol}")
+        showToast("Koz: ${suit.labelTr}")
         if (player != 0) audio.play(R.raw.bid, 0.7f)
         pump()
     }
@@ -318,7 +321,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun finishRound(game: BatakGame) {
         val bids = game.bids.map { it ?: 0 }
-        val roundScores = BatakRules.scoreRound(bids, game.tricksWon)
+        val roundScores = BatakRules.scoreRound(
+            bids = bids,
+            tricksWon = game.tricksWon,
+            mode = game.mode,
+            highestBidder = game.highestBidder,
+            highestBid = game.highestBid
+        )
         val trump = game.trump ?: Suit.SPADES
         val next = game.copy(
             scores = game.scores.zip(roundScores) { a, b -> a + b },
@@ -328,9 +337,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         )
         update(next)
         val humanRound = roundScores[0]
-        if (humanRound >= 0) audio.play(R.raw.round_win, 0.8f) else {
+        if (humanRound > 0) audio.play(R.raw.round_win, 0.8f) else if (humanRound < 0) {
             audio.play(R.raw.round_lose, 0.8f)
             vibration.medium()
+        } else {
+            audio.play(R.raw.trick_win, 0.6f)
         }
     }
 
@@ -347,8 +358,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun finishMatch(game: BatakGame) {
         val humanScore = game.scores[0]
-        val bestOther = game.scores.drop(1).maxOrNull() ?: 0
-        val won = humanScore >= bestOther
+        val won = when (game.mode) {
+            GameMode.SOLO -> humanScore >= (game.scores.drop(1).maxOrNull() ?: 0)
+            GameMode.PARTNERED -> {
+                val myTeam = BatakRules.teamOf(0)
+                val myTeamScore = game.scores[0] + game.scores[2]
+                val otherTeamScore = game.scores[1] + game.scores[3]
+                if (myTeam == 0) myTeamScore >= otherTeamScore else myTeamScore > otherTeamScore
+            }
+        }
         val finished = game.copy(phase = GamePhase.GAME_OVER, statsApplied = true)
         update(finished, persist = false)
         viewModelScope.launch { repo.clearSave() }
@@ -400,7 +418,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                             hand = current.hands[player],
                             highestBid = current.highestBid,
                             lastToBid = player == current.dealer,
-                            passedCount = current.bids.count { it == 0 }
+                            passedCount = current.bids.count { it == 0 },
+                            mode = current.mode,
+                            highestBidder = current.highestBidder,
+                            myPlayer = player
                         )
                         applyBid(player, bid)
                     }
@@ -450,6 +471,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun setVibrationEnabled(value: Boolean) = viewModelScope.launch { repo.updateSettings { it.copy(vibrationEnabled = value) } }
     fun setAnimationsEnabled(value: Boolean) = viewModelScope.launch { repo.updateSettings { it.copy(animationsEnabled = value) } }
     fun setDifficulty(value: Difficulty) = viewModelScope.launch { repo.updateSettings { it.copy(difficulty = value) } }
+    fun setGameMode(value: GameMode) = viewModelScope.launch { repo.updateSettings { it.copy(gameMode = value) } }
     fun setCardDesign(value: CardDesign) = viewModelScope.launch { repo.updateSettings { it.copy(cardDesign = value) } }
     fun setTheme(value: AppTheme) = viewModelScope.launch { repo.updateSettings { it.copy(theme = value) } }
     fun setPlayerName(value: String) = viewModelScope.launch { repo.updateSettings { it.copy(playerName = value.take(16)) } }

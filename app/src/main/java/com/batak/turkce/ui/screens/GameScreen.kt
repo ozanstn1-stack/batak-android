@@ -61,6 +61,7 @@ import com.batak.turkce.engine.GamePhase
 import com.batak.turkce.engine.PlayedCard
 import com.batak.turkce.game.GameViewModel
 import com.batak.turkce.model.CardDesign
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.ui.components.CardBack
 import com.batak.turkce.ui.components.CardFace
@@ -108,9 +109,9 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
         val width = maxWidth
         val screenHeight = maxHeight
         val compact = maxHeight < 640.dp
-        val handCardW = (width * 0.128f).coerceIn(40.dp, 58.dp)
+        val handCardW = (width * 0.145f).coerceIn(46.dp, 66.dp)
         val handCardH = handCardW * 1.44f
-        val trickCardW = (width * 0.15f).coerceIn(46.dp, 64.dp)
+        val trickCardW = (width * 0.155f).coerceIn(48.dp, 68.dp)
         val trickCardH = trickCardW * 1.44f
         val miniCardW = if (compact) 14.dp else 17.dp
         val miniCardH = miniCardW * 1.45f
@@ -152,7 +153,7 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
                 InfoChip("El: ${game.tricksPlayed} / ${BatakRules.HAND_SIZE}", fontSize = 11)
                 Spacer(Modifier.weight(1f))
                 InfoChip(
-                    text = game.trump?.let { "KOZ: ${it.labelTr.uppercase(Locale.forLanguageTag("tr"))} ${it.symbol}" }
+                    text = game.trump?.let { "KOZ: ${it.labelTr.uppercase(Locale.forLanguageTag("tr"))}" }
                         ?: "KOZ: —",
                     background = if (game.trump != null) BatakColors.Gold.copy(alpha = 0.92f) else Color.Black.copy(alpha = 0.35f),
                     textColor = if (game.trump != null) Color(0xFF3A2A06) else BatakColors.Cream,
@@ -259,6 +260,7 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
                     BidPanel(
                         highestBid = game.highestBid,
                         highestBidderName = if (game.highestBidder >= 0) vm.nameOf(game.highestBidder) else null,
+                        minBid = BatakRules.minBid(game.mode),
                         canBid = { vm.canHumanBid(it) },
                         onBid = { vm.humanBid(it) },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -295,7 +297,11 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     InfoChip(
-                        text = "${game.playerName} · ${game.tricksWon.getOrElse(0) { 0 }} el · Puan ${game.scores.getOrElse(0) { 0 }}",
+                        text = if (game.mode == GameMode.PARTNERED) {
+                            "${game.playerName} & Rakip 2 · ${game.tricksWon.getOrElse(0) { 0 }} el · Puan ${game.scores.getOrElse(0) { 0 }}"
+                        } else {
+                            "${game.playerName} · ${game.tricksWon.getOrElse(0) { 0 }} el · Puan ${game.scores.getOrElse(0) { 0 }}"
+                        },
                         fontSize = 11,
                         background = Color.Black.copy(alpha = 0.4f)
                     )
@@ -521,7 +527,12 @@ private fun SeatView(
                 )
                 .border(
                     width = if (isTurn || isWinner) 2.dp else 1.dp,
-                    color = if (isTurn || isWinner) BatakColors.Gold.copy(alpha = 0.4f + 0.6f * pulse) else Color.White.copy(alpha = 0.25f),
+                    color = when {
+                        isTurn || isWinner -> BatakColors.Gold.copy(alpha = 0.4f + 0.6f * pulse)
+                        game.mode == GameMode.PARTNERED && BatakRules.isPartner(playerIndex, 0) -> Color(0xFF4FC08D).copy(alpha = 0.85f)
+                        game.mode == GameMode.PARTNERED -> Color(0xFFD96A5A).copy(alpha = 0.65f)
+                        else -> Color.White.copy(alpha = 0.25f)
+                    },
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -542,6 +553,16 @@ private fun SeatView(
             maxLines = 1
         )
         Spacer(Modifier.height(3.dp))
+        if (game.mode == GameMode.PARTNERED && BatakRules.isPartner(playerIndex, 0)) {
+            InfoChip(
+                text = "EŞİN",
+                fontSize = 10,
+                horizontalPadding = 8.dp,
+                verticalPadding = 3.dp,
+                background = Color(0xFF1F6B4A).copy(alpha = 0.95f)
+            )
+            Spacer(Modifier.height(3.dp))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
             val bidText = when {
                 bid == null -> "—"

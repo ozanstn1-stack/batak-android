@@ -29,6 +29,7 @@ import com.batak.turkce.game.GameViewModel
 import com.batak.turkce.model.AppTheme
 import com.batak.turkce.model.CardDesign
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import com.batak.turkce.ui.theme.BatakColors
 
 @Composable
@@ -62,6 +63,28 @@ fun SettingsScreen(vm: GameViewModel, onBack: () -> Unit) {
                 description = "Kart dağıtımı ve geçiş animasyonları",
                 checked = settings.animationsEnabled,
                 onChange = { vm.setAnimationsEnabled(it) }
+            )
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        SectionCard {
+            Text("OYUN MODU", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Spacer(Modifier.height(12.dp))
+            SettingLabel("Oynama şekli")
+            Spacer(Modifier.height(8.dp))
+            OptionPills(
+                options = GameMode.entries.map { it.labelTr to (it == settings.gameMode) },
+                onSelect = { index ->
+                    vm.playClick()
+                    vm.setGameMode(GameMode.entries[index])
+                }
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = settings.gameMode.descriptionTr,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 11.sp
             )
         }
 

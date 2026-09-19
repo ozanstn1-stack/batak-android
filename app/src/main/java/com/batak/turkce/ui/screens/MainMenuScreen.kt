@@ -44,6 +44,7 @@ import com.batak.turkce.model.PlayingCard
 import com.batak.turkce.model.Rank
 import com.batak.turkce.model.Suit
 import com.batak.turkce.ui.components.CardFace
+import com.batak.turkce.ui.components.SuitSymbol
 import com.batak.turkce.ui.components.TableBackground
 import com.batak.turkce.ui.theme.BatakColors
 
@@ -98,10 +99,10 @@ fun MainMenuScreen(
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 Suit.entries.forEach { suit ->
-                    Text(
-                        text = suit.symbol,
-                        color = if (suit.isRed) Color(0xFFE2635A) else BatakColors.Cream,
-                        fontSize = 24.sp
+                    SuitSymbol(
+                        suit = suit,
+                        size = 22.dp,
+                        color = if (suit.isRed) Color(0xFFE2635A) else BatakColors.Cream
                     )
                 }
             }
@@ -144,7 +145,7 @@ fun MainMenuScreen(
 
             Spacer(Modifier.height(26.dp))
             Text(
-                text = "Sürüm 1.0.0  ·  Çevrimdışı oynanır",
+                text = "Sürüm 1.1.0  ·  Çevrimdışı oynanır",
                 color = BatakColors.Cream.copy(alpha = 0.45f),
                 fontSize = 11.sp,
                 textAlign = TextAlign.Center

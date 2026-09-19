@@ -12,6 +12,7 @@ import com.batak.turkce.engine.BatakGame
 import com.batak.turkce.model.AppTheme
 import com.batak.turkce.model.CardDesign
 import com.batak.turkce.model.Difficulty
+import com.batak.turkce.model.GameMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.decodeFromString
@@ -32,6 +33,7 @@ class AppRepository(private val context: Context) {
         val VIBRATION = booleanPreferencesKey("vibration_enabled")
         val ANIMATIONS = booleanPreferencesKey("animations_enabled")
         val DIFFICULTY = stringPreferencesKey("difficulty")
+        val GAME_MODE = stringPreferencesKey("game_mode")
         val CARD_DESIGN = stringPreferencesKey("card_design")
         val THEME = stringPreferencesKey("theme")
         val PLAYER_NAME = stringPreferencesKey("player_name")
@@ -54,6 +56,7 @@ class AppRepository(private val context: Context) {
             vibrationEnabled = prefs[Keys.VIBRATION] ?: true,
             animationsEnabled = prefs[Keys.ANIMATIONS] ?: true,
             difficulty = prefs[Keys.DIFFICULTY]?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() } ?: Difficulty.NORMAL,
+            gameMode = prefs[Keys.GAME_MODE]?.let { runCatching { GameMode.valueOf(it) }.getOrNull() } ?: GameMode.SOLO,
             cardDesign = prefs[Keys.CARD_DESIGN]?.let { runCatching { CardDesign.valueOf(it) }.getOrNull() } ?: CardDesign.KLASIK,
             theme = prefs[Keys.THEME]?.let { runCatching { AppTheme.valueOf(it) }.getOrNull() } ?: AppTheme.DARK,
             playerName = prefs[Keys.PLAYER_NAME] ?: "Oyuncu",
@@ -86,6 +89,7 @@ class AppRepository(private val context: Context) {
                 vibrationEnabled = prefs[Keys.VIBRATION] ?: true,
                 animationsEnabled = prefs[Keys.ANIMATIONS] ?: true,
                 difficulty = prefs[Keys.DIFFICULTY]?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() } ?: Difficulty.NORMAL,
+                gameMode = prefs[Keys.GAME_MODE]?.let { runCatching { GameMode.valueOf(it) }.getOrNull() } ?: GameMode.SOLO,
                 cardDesign = prefs[Keys.CARD_DESIGN]?.let { runCatching { CardDesign.valueOf(it) }.getOrNull() } ?: CardDesign.KLASIK,
                 theme = prefs[Keys.THEME]?.let { runCatching { AppTheme.valueOf(it) }.getOrNull() } ?: AppTheme.DARK,
                 playerName = prefs[Keys.PLAYER_NAME] ?: "Oyuncu",
@@ -96,6 +100,7 @@ class AppRepository(private val context: Context) {
             prefs[Keys.VIBRATION] = updated.vibrationEnabled
             prefs[Keys.ANIMATIONS] = updated.animationsEnabled
             prefs[Keys.DIFFICULTY] = updated.difficulty.name
+            prefs[Keys.GAME_MODE] = updated.gameMode.name
             prefs[Keys.CARD_DESIGN] = updated.cardDesign.name
             prefs[Keys.THEME] = updated.theme.name
             prefs[Keys.PLAYER_NAME] = updated.playerName.take(16)
