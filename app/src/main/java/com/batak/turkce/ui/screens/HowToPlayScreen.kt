@@ -29,7 +29,9 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
             title = "KART SIRALAMASI",
             body = "A (As) > K (Papaz) > Q (Kız) > J (Vale) > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2\n" +
                 "Renkler: Maça, Kupa, Karo, Sinek. Kupa ve Karo kırmızı, Maça ve Sinek siyahtır. " +
-                "Koz dışında hiçbir renk diğerinden üstün değildir."
+                "Koz dışında hiçbir renk diğerinden üstün değildir.\n\n" +
+                "Eldeki kartlar otomatik olarak renklerine göre gruplanır ve her renk kendi içinde " +
+                "büyükten küçüğe sıralanır (Maça, Kupa, Karo, Sinek)."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(

@@ -687,13 +687,14 @@ private fun HandFan(
             .fillMaxWidth()
             .height(cardH + 30.dp)
     ) {
-        val count = cards.size
+        val sortedCards = remember(cards) { BatakRules.sortHand(cards) }
+        val count = sortedCards.size
         if (count == 0) return@BoxWithConstraints
         val density = LocalDensity.current
         val available = maxWidth - 20.dp
         val step = if (count <= 1) 0.dp else ((available - cardW) / (count - 1)).coerceAtLeast(8.dp)
 
-        cards.forEachIndexed { index, card ->
+        sortedCards.forEachIndexed { index, card ->
             val isSelected = card == selected
             val lift by animateDpAsState(
                 targetValue = if (isSelected) 24.dp else 0.dp,

@@ -130,4 +130,16 @@ object BatakRules {
     }
 
     fun trickOrder(startPlayer: Int): List<Int> = (0 until PLAYER_COUNT).map { (startPlayer + it) % PLAYER_COUNT }
+
+    /**
+     * Elde gösterim için sıralama: önce renge göre (Maça, Kupa, Karo, Sinek),
+     * aynı renk içinde büyükten küçüğe (A, K, Q, ... 2).
+     */
+    fun sortHand(cards: List<PlayingCard>): List<PlayingCard> =
+        cards.sortedWith(
+            compareBy(
+                { Suit.displayOrder.indexOf(it.suit) },
+                { -it.rank.value }
+            )
+        )
 }

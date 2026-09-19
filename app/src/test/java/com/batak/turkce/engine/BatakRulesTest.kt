@@ -242,5 +242,33 @@ class BatakRulesTest {
         assertEquals((12..13).toList(), BatakRules.nextBidOptions(11, GameMode.PARTNERED))
     }
 
+    @Test
+    fun `el kartlari renge ve buyukluge gore siralanir`() {
+        val hand = listOf(
+            card(Suit.HEARTS, Rank.TWO),
+            card(Suit.SPADES, Rank.FIVE),
+            card(Suit.CLUBS, Rank.ACE),
+            card(Suit.HEARTS, Rank.ACE),
+            card(Suit.DIAMONDS, Rank.KING),
+            card(Suit.SPADES, Rank.ACE),
+            card(Suit.CLUBS, Rank.TWO),
+            card(Suit.DIAMONDS, Rank.FOUR)
+        )
+        val sorted = BatakRules.sortHand(hand)
+        assertEquals(
+            listOf(
+                card(Suit.SPADES, Rank.ACE),
+                card(Suit.SPADES, Rank.FIVE),
+                card(Suit.HEARTS, Rank.ACE),
+                card(Suit.HEARTS, Rank.TWO),
+                card(Suit.DIAMONDS, Rank.KING),
+                card(Suit.DIAMONDS, Rank.FOUR),
+                card(Suit.CLUBS, Rank.ACE),
+                card(Suit.CLUBS, Rank.TWO)
+            ),
+            sorted
+        )
+    }
+
     private fun card(suit: Suit, rank: Rank): PlayingCard = PlayingCard(suit, rank)
 }
