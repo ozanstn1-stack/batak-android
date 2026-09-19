@@ -145,7 +145,7 @@ fun MainMenuScreen(
 
             Spacer(Modifier.height(26.dp))
             Text(
-                text = "Sürüm 1.1.2  ·  Çevrimdışı oynanır",
+                text = "Sürüm 1.1.3  ·  Çevrimdışı oynanır",
                 color = BatakColors.Cream.copy(alpha = 0.45f),
                 fontSize = 11.sp,
                 textAlign = TextAlign.Center
