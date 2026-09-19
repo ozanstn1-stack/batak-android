@@ -31,7 +31,8 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
                 "Renkler: Maça, Kupa, Karo, Sinek. Kupa ve Karo kırmızı, Maça ve Sinek siyahtır. " +
                 "Koz dışında hiçbir renk diğerinden üstün değildir.\n\n" +
                 "Eldeki kartlar otomatik olarak renklerine göre gruplanır ve her renk kendi içinde " +
-                "büyükten küçüğe sıralanır (Maça, Kupa, Karo, Sinek)."
+                "büyükten küçüğe sıralanır. Renk grupları siyah–kırmızı dönüşümlü dizilir " +
+                "(Maça, Kupa, Sinek, Karo)."
         )
         Spacer(Modifier.height(12.dp))
         HelpSection(
@@ -60,8 +61,12 @@ fun HowToPlayScreen(vm: GameViewModel, onBack: () -> Unit) {
                 "• Kart yükseltme zorunluluğu: Oynanan en yüksek takım rengi kartından " +
                 "daha büyük bir kartın varsa, onu oynamak zorundasın. " +
                 "Örneğin masaya 9 kupa atıldıysa ve elinde K kupa varsa K kupa oynamalısın.\n" +
-                "• Elinde o renk hiç yoksa istediği kartı oynayabilir: koz atabilir veya " +
-                "başka renk atabilir. Koz atma zorunluluğu yoktur.\n\n" +
+                "• Elinde o renk hiç yoksa:\n" +
+                "   – Masaya henüz koz atılmamışsa koz atamazsın; kozun önce ortaya çıkması gerekir. " +
+                "Bu durumda başka bir renkten kart atarsın.\n" +
+                "   – Masaya koz atılmışsa koz atabilirsin; fakat elinde daha büyük bir koz varsa " +
+                "onu atmak zorundasın (kozu büyütme zorunluluğu).\n" +
+                "   – Elin tamamen kozdan oluşuyorsa koz oynayabilirsin.\n\n" +
                 "Eli kazanan: elde koz varsa en yüksek koz, yoksa başlangıç rengindeki en yüksek karttır."
         )
         Spacer(Modifier.height(12.dp))

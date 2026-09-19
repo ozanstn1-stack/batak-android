@@ -10,7 +10,7 @@ enum class Suit(val labelTr: String, val symbol: String, val isRed: Boolean) {
     CLUBS("Sinek", "♣", false);
 
     companion object {
-        val displayOrder: List<Suit> = listOf(SPADES, HEARTS, DIAMONDS, CLUBS)
+        val displayOrder: List<Suit> = listOf(SPADES, HEARTS, CLUBS, DIAMONDS)
     }
 }
 
